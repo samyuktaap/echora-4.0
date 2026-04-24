@@ -32,7 +32,7 @@ create table if not exists public.profiles (
   id            uuid primary key references auth.users(id) on delete cascade,
   email         text not null,
   name          text not null default '',
-  role          text not null default 'volunteer' check (role in ('volunteer', 'ngo')),
+  role          text not null default 'volunteer',
   bio           text default '',
   location      text default '',
   state         text default '',
@@ -157,6 +157,11 @@ create table if not exists public.volunteer_details (
   created_at      timestamptz default now()
 );
 
+-- Ensure NO constraints block the app (Relaxed Schema)
+alter table public.volunteer_details drop constraint if exists volunteer_details_id_proof_type_check;
+alter table public.ngo_tasks drop constraint if exists ngo_tasks_urgency_check;
+alter table public.ngo_applications drop constraint if exists ngo_applications_status_check;
+
 alter table public.volunteer_details enable row level security;
 
 -- Fix for ID proof type constraint mismatch
@@ -217,7 +222,7 @@ create table if not exists public.ngo_tasks (
   required_skills text[] default '{}',
   min_experience  text default 'Beginner',
   availability    text default 'Flexible',
-  urgency         text default 'medium' check (urgency in ('high', 'medium', 'low', 'urgent')),
+  urgency         text default 'medium',
   spots           integer default 1,
   deadline        text,
   active          boolean default true,
