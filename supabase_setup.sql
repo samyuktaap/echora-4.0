@@ -159,6 +159,11 @@ create table if not exists public.volunteer_details (
 
 alter table public.volunteer_details enable row level security;
 
+-- Fix for ID proof type constraint mismatch
+alter table public.volunteer_details drop constraint if exists volunteer_details_id_proof_type_check;
+alter table public.volunteer_details add constraint volunteer_details_id_proof_type_check 
+  check (id_proof_type in ('Aadhar', 'Pan Card', 'Driving License', 'Passport', 'Aadhar Card', 'Other', ''));
+
 create policy "Users can manage own details"
   on public.volunteer_details for all
   using (auth.uid() = id);
