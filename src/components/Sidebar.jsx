@@ -12,15 +12,18 @@ const Sidebar = ({ onClose }) => {
   const navItems = [
     { to: '/dashboard', icon: Home, label: t('navDashboard') },
     { to: '/tasks', icon: ClipboardList, label: t('navTasks') },
-    ...(profile?.role === 'ngo' || profile?.role === 'admin' ? [
-      { to: '/ngo-dashboard', icon: Building, label: 'Volunteer Apps' }
-    ] : []),
-    { to: '/ngo-requests', icon: Building, label: t('navNGORequests') },
     { to: '/map', icon: Map, label: t('navMap') },
+    
+    // NGO & Admin Only Section
+    ...(profile?.role === 'ngo' || profile?.role === 'admin' ? [
+      { to: '/ngo-dashboard', icon: Zap, label: 'Volunteer Apps' },
+      { to: '/ngo-requests', icon: Building, label: t('navNGORequests') },
+      { to: '/ngo-form', icon: PlusCircle, label: t('navNGOForm') },
+    ] : []),
+
     { to: '/meetups', icon: Calendar, label: t('navMeetups') },
     { to: '/impact', icon: TrendingUp, label: t('navImpact') },
     { to: '/leaderboard', icon: Trophy, label: t('navLeaderboard') },
-    { to: '/ngo-form', icon: PlusCircle, label: t('navNGOForm') },
     { to: '/profile', icon: User, label: t('navProfile') },
   ];
 
