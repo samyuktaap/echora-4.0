@@ -14,7 +14,6 @@ const NGOForm = () => {
     state: '',
     taskDescription: '',
     requiredSkills: [],
-    urgency: 'Medium',
     taskDate: '',
     additionalInfo: '',
   });
@@ -59,7 +58,6 @@ const NGOForm = () => {
         state: '',
         taskDescription: '',
         requiredSkills: [],
-        urgency: 'Medium',
         taskDate: '',
         additionalInfo: '',
       });
@@ -80,7 +78,6 @@ const NGOForm = () => {
             <div style={{ background: 'var(--bg-input)', padding: '1.25rem', borderRadius: '12px', border: '1px solid var(--border-color)', marginBottom: '1.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.7 }}>
               <strong style={{ color: 'var(--text-primary)' }}>📋 Your Submission:</strong><br />
               <strong>{form.ngoName}</strong> in {form.location}, {form.state}<br />
-              <strong style={{ color: 'var(--gold-mid)' }}>Urgency:</strong> {form.urgency}<br />
               <strong style={{ color: 'var(--gold-mid)' }}>Skills needed:</strong> {form.requiredSkills.join(', ')}
             </div>
             <a href="/dashboard" style={{ color: 'var(--gold-mid)', fontWeight: 600, textDecoration: 'underline' }}>← Back to Dashboard</a>
@@ -147,14 +144,6 @@ const NGOForm = () => {
             </div>
 
             <div className="grid-2">
-              <div className="form-group">
-                <label className="form-label">Urgency Level</label>
-                <select className="form-select" value={form.urgency} onChange={set('urgency')}>
-                  <option value="Low">🟢 Low</option>
-                  <option value="Medium">🟡 Medium</option>
-                  <option value="High">🔴 High</option>
-                </select>
-              </div>
               <div className="form-group">
                 <label className="form-label">Preferred Start Date</label>
                 <input className="form-input" type="date" value={form.taskDate} onChange={set('taskDate')} />

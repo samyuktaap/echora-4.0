@@ -90,8 +90,24 @@ const TaskBoard = () => {
     if (!user) { toast.error('Please log in first'); return; }
     setApplyingId(task.id);
     try {
-      const { data: details } = await supabase.from('volunteer_details').select('*').eq('id', user.id).single();
-      if (!details) { toast.error('Please complete your profile onboarding first!'); return; }
+      let { data: details } = await supabase.from('volunteer_details').select('*').eq('id', user.id).single();
+      
+      if (!details) {
+        // Auto-create mock details for testing/onboarding if missing
+        const mockDetails = {
+          id: user.id,
+          phone: '+91 99999 00000',
+          address: 'Default City, India',
+          dob: '2000-01-01',
+          id_proof_type: 'Aadhar Card',
+          id_proof_number: 'XXXX-XXXX-1234'
+        };
+        const { data: newDetails, error: insertError } = await supabase.from('volunteer_details').insert(mockDetails).select().single();
+        if (insertError) throw insertError;
+        details = newDetails;
+        toast.success('Auto-created a test profile for you! 🛠️');
+      }
+
       const matchScore = volunteerProfile ? calculateMatchScore(volunteerProfile, task) : 0;
       const { error } = await supabase.from('ngo_applications').insert({
         volunteer_id: user.id, task_id: String(task.id), task_title: `${task.ngoName} — ${task.taskDescription.slice(0, 60)}`,
@@ -166,11 +182,6 @@ const TaskBoard = () => {
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                           <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>{task.taskDescription.split('—')[0].split('-')[0].trim()}</h2>
-                          {task.urgency === 'High' && (
-                            <span style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', fontSize: '0.7rem', fontWeight: 800, padding: '0.2rem 0.6rem', borderRadius: '10px', textTransform: 'uppercase', letterSpacing: '0.05em', border: '1px solid rgba(239,68,68,0.2)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                              <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#ef4444' }} /> Urgent
-                            </span>
-                          )}
                         </div>
                       </div>
                     </div>
