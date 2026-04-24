@@ -103,10 +103,6 @@ const Dashboard = () => {
                     <div style={{ flex: 1 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.4rem', flexWrap: 'wrap' }}>
                         <span style={{ fontWeight: 700, fontSize: '0.95rem', fontFamily: 'var(--font-display)' }}>{task.ngoName}</span>
-                        <span className={`badge urgency-${task.urgency.toLowerCase()}`} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                          {task.urgency === 'High' ? <Target size={12} strokeWidth={2} style={{ color: 'var(--danger)' }} /> : task.urgency === 'Medium' ? <TrendingUp size={12} strokeWidth={2} style={{ color: 'var(--warning)' }} /> : <CheckCircle size={12} strokeWidth={2} style={{ color: 'var(--success)' }} />}
-                          {task.urgency}
-                        </span>
                       </div>
                       <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.6rem', lineHeight: 1.6 }}>{task.taskDescription}</p>
                       <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>

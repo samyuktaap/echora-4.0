@@ -90,7 +90,6 @@ const NGORequests = () => {
                       ) : (
                         <span className="badge badge-warning">⏳ Pending Review</span>
                       )}
-                      {req.urgency && <span className={`badge urgency-${req.urgency.toLowerCase()}`}>{req.urgency}</span>}
                     </div>
                     <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>{req.taskDescription}</p>
                     <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>

@@ -81,7 +81,6 @@ const MapView = () => {
               {nearestTask.ngoName} — {nearestTask.location}, {nearestTask.state}
             </span>
           </div>
-          <span className={`badge urgency-${nearestTask.urgency.toLowerCase()}`}>{t(`urgency${nearestTask.urgency}`)}</span>
           <button onClick={() => setFlyTarget({ lat: nearestTask.lat, lng: nearestTask.lng, zoom: 10 })} className="btn btn-secondary btn-sm">{t('mapFlyTo')} →</button>
         </div>
       )}
@@ -158,7 +157,6 @@ const MapView = () => {
                 <div style={{ fontWeight: 700, marginBottom: '0.3rem' }}>{r.ngoName}</div>
                 <div style={{ fontSize: '0.78rem', opacity: 0.7, marginBottom: '0.25rem' }}>📍 {r.location}, {r.state}</div>
                 <div style={{ fontSize: '0.78rem', opacity: 0.75, marginBottom: '0.5rem', lineHeight: 1.5 }}>{r.taskDescription}</div>
-                <span style={{ fontSize: '0.72rem', padding: '3px 8px', borderRadius: '20px', fontWeight: 600, background: r.urgency==='High'?'rgba(155,35,53,0.3)':r.urgency==='Medium'?'rgba(201,168,76,0.2)':'rgba(45,158,106,0.2)', color: r.urgency==='High'?'#e06080':r.urgency==='Medium'?'#c9a84c':'#5dba8c' }}>{t(`urgency${r.urgency}`)} {t('info')}</span>
               </div></Popup>
             </Marker>
           ))}
