@@ -1,0 +1,137 @@
+-- ═══════════════════════════════════════════════════════════════════════
+-- ECHORA — Supabase Database Setup
+-- Run this entire file in your Supabase SQL Editor (once)
+-- Dashboard → SQL Editor → New Query → paste → Run
+-- ═══════════════════════════════════════════════════════════════════════
+
+-- ── 1. PROFILES TABLE ───────────────────────────────────────────────────
+-- One row per user. Automatically linked to auth.users via `id`.
+
+create table if not exists public.profiles (
+  id            uuid primary key references auth.users(id) on delete cascade,
+  email         text not null,
+  name          text not null default '',
+  role          text not null default 'volunteer' check (role in ('volunteer', 'ngo')),
+  bio           text default '',
+  location      text default '',
+  state         text default '',
+  lat           double precision default 20.5937,
+  lng           double precision default 78.9629,
+  experience    text default 'Beginner',
+  skills        text[] default '{}',
+  languages     text[] default '{}',
+  points        integer default 0,
+  badges        text[] default '{"Newcomer"}',
+  tasks_completed integer default 0,
+  avatar        text,
+  created_at    timestamptz default now(),
+  updated_at    timestamptz default now()
+);
+
+-- ── 2. NOTES TABLE ──────────────────────────────────────────────────────
+-- Personal volunteer activity notes. Only the owner can see theirs.
+
+create table if not exists public.notes (
+  id         bigserial primary key,
+  user_id    uuid not null references public.profiles(id) on delete cascade,
+  task       text not null,
+  note       text not null,
+  rating     integer default 5 check (rating between 1 and 5),
+  date       text,
+  created_at timestamptz default now()
+);
+
+-- ── 3. ROW LEVEL SECURITY ───────────────────────────────────────────────
+-- This is the key part: each user can ONLY see and modify their OWN rows.
+-- Supabase enforces this at the database level — impossible to bypass.
+
+-- Profiles RLS
+alter table public.profiles enable row level security;
+
+drop policy if exists "Users can view own profile" on public.profiles;
+drop policy if exists "Users can update own profile" on public.profiles;
+drop policy if exists "Users can insert own profile" on public.profiles;
+
+create policy "Users can view own profile"
+  on public.profiles for select
+  using (auth.uid() = id);
+
+create policy "Users can insert own profile"
+  on public.profiles for insert
+  with check (auth.uid() = id);
+
+create policy "Users can update own profile"
+  on public.profiles for update
+  using (auth.uid() = id);
+
+-- Notes RLS
+alter table public.notes enable row level security;
+
+drop policy if exists "Users can manage own notes" on public.notes;
+drop policy if exists "Users can view own notes" on public.notes;
+drop policy if exists "Users can insert own notes" on public.notes;
+drop policy if exists "Users can delete own notes" on public.notes;
+
+create policy "Users can view own notes"
+  on public.notes for select
+  using (auth.uid() = user_id);
+
+create policy "Users can insert own notes"
+  on public.notes for insert
+  with check (auth.uid() = user_id);
+
+create policy "Users can delete own notes"
+  on public.notes for delete
+  using (auth.uid() = user_id);
+
+-- ── 4. AUTO-UPDATE updated_at TRIGGER ──────────────────────────────────
+
+create or replace function public.handle_updated_at()
+returns trigger language plpgsql as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
+drop trigger if exists on_profile_updated on public.profiles;
+create trigger on_profile_updated
+  before update on public.profiles
+  for each row execute procedure public.handle_updated_at();
+
+-- ── 5. AUTO-CREATE PROFILE ON SIGNUP ────────────────────────────────────
+-- Fallback: if the frontend profile insert fails for any reason,
+-- this trigger creates a minimal profile row automatically.
+
+create or replace function public.handle_new_user()
+returns trigger language plpgsql security definer as $$
+begin
+  insert into public.profiles (id, email, name, role)
+  values (
+    new.id,
+    new.email,
+    coalesce(new.raw_user_meta_data->>'name', split_part(new.email, '@', 1)),
+    coalesce(new.raw_user_meta_data->>'role', 'volunteer')
+  )
+  on conflict (id) do nothing;   -- don't overwrite if frontend already inserted
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();
+
+-- ── 6. DISABLE EMAIL CONFIRMATION (dev-friendly) ───────────────────────
+-- Users can sign in immediately after signup without checking email.
+-- To re-enable in production: Dashboard → Auth → Email → enable "Confirm email"
+
+-- Note: Email confirmation is controlled in Dashboard → Auth settings, not SQL.
+-- Make sure "Enable email confirmations" is DISABLED in your Supabase Auth settings
+-- for the best user experience during development.
+
+-- ═══════════════════════════════════════════════════════════════════════
+-- DONE! Your database is ready.
+-- Next: add your .env file (see src/lib/supabase.js for instructions)
+-- ═══════════════════════════════════════════════════════════════════════
