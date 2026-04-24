@@ -304,7 +304,11 @@ const NGORequests = () => {
       )}
 
       {/* Filters */}
-      <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 16, padding: '1rem', marginBottom: '1.5rem', display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'center' }}>
+      <div style={{ 
+        background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', 
+        borderRadius: '20px', padding: '1.25rem', marginBottom: '2rem', 
+        display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center', width: '100%'
+      }}>
         <input
           className="form-input"
           style={{ flex: 1, minWidth: 200, height: 40 }}

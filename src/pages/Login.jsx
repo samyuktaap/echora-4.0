@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 import toast from 'react-hot-toast';
 
 const Login = () => {
   const { signInWithEmail, signUpWithEmail } = useAuth();
   const { isDark, toggleTheme } = useTheme();
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   const [mode, setMode] = useState('signin'); // 'signin' | 'signup'
@@ -23,17 +25,17 @@ const Login = () => {
     try {
       if (mode === 'signup') {
         if (form.password !== form.confirmPassword) {
-          toast.error('Passwords do not match');
+          toast.error(t('passwordsNotMatch'));
           setLoading(false);
           return;
         }
         const result = await signUpWithEmail(form.email, form.password, form.name, role);
         if (result.success) {
           if (result.needsConfirmation) {
-            toast.success('Account created! Please check your email to verify.', { duration: 6000 });
+            toast.success(t('accountCreatedVerify'), { duration: 6000 });
             setMode('signin');
           } else {
-            toast.success('Welcome to ECHORA! 🎉');
+            toast.success(t('welcomeToEchora'));
             navigate('/dashboard');
           }
         } else {
@@ -42,7 +44,7 @@ const Login = () => {
       } else {
         const result = await signInWithEmail(form.email, form.password);
         if (result.success) {
-          toast.success('Welcome back!');
+          toast.success(t('welcomeBack'));
           navigate('/dashboard');
         } else {
           toast.error(result.error);
@@ -61,12 +63,12 @@ const Login = () => {
   ];
 
   const features = [
-    { icon: '🗺️', text: 'Map-based task discovery' },
-    { icon: '🤖', text: 'AI volunteer matching' },
-    { icon: '🏆', text: 'Points & badge system' },
-    { icon: '📊', text: 'Real-time impact metrics' },
-    { icon: '🌐', text: 'Multilingual support' },
-    { icon: '🤝', text: 'Weekend meetups' },
+    { icon: '🗺️', text: t('featureMapDiscovery') },
+    { icon: '🤖', text: t('featureAIMatching') },
+    { icon: '🏆', text: t('featurePointsBadges') },
+    { icon: '📊', text: t('featureRealTimeMetrics') },
+    { icon: '🌐', text: t('featureMultilingual') },
+    { icon: '🤝', text: t('featureWeekendMeetups') },
   ];
 
   return (
@@ -91,15 +93,17 @@ const Login = () => {
         <div style={{ position: 'relative', zIndex: 1, maxWidth: 440 }}>
           {/* Logo */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '3rem' }}>
-            <div style={{
-              width: 52, height: 52, borderRadius: '14px',
-              background: 'var(--gold-grad)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '1.6rem', boxShadow: '0 0 30px rgba(201,168,76,0.3)',
-            }}>⚡</div>
+            <img 
+              src="/echora-logo.svg" 
+              alt="ECHORA Logo"
+              style={{
+                width: 52, height: 52,
+                boxShadow: '0 0 30px rgba(201,168,76,0.3)',
+              }}
+            />
             <div>
               <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.7rem', fontWeight: 800, color: '#e8dfc8', letterSpacing: '-0.01em' }}>ECHORA</div>
-              <div style={{ color: 'rgba(232,223,200,0.45)', fontSize: '0.75rem', letterSpacing: '0.15em', textTransform: 'uppercase' }}>Volunteer Platform</div>
+              <div style={{ color: 'rgba(232,223,200,0.45)', fontSize: '0.75rem', letterSpacing: '0.1em' }}>EMPATHY IN EVERY ECHO</div>
             </div>
           </div>
 
@@ -145,16 +149,16 @@ const Login = () => {
           {/* Header */}
           <div style={{ marginBottom: '2rem' }}>
             <h2 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '0.3rem' }}>
-              {mode === 'signin' ? 'Welcome back' : 'Create account'}
+              {mode === 'signin' ? t('welcomeBack') : t('createAccount')}
             </h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>
-              {mode === 'signin' ? 'Sign in to your ECHORA account' : 'Join the ECHORA volunteer network'}
+              {mode === 'signin' ? t('signInToAccount') : t('joinVolunteerNetwork')}
             </p>
           </div>
 
           {/* Mode toggle */}
           <div style={{ display: 'flex', background: 'var(--bg-input)', borderRadius: '12px', padding: '4px', marginBottom: '1.5rem', border: '1px solid var(--border-color)' }}>
-            {[['signin', 'Sign In'], ['signup', 'Sign Up']].map(([m, label]) => (
+            {[['signin', t('signIn')], ['signup', t('signUp')]].map(([m, label]) => (
               <button key={m} onClick={() => setMode(m)} style={{
                 flex: 1, padding: '0.55rem', borderRadius: '9px', border: 'none', cursor: 'pointer',
                 fontSize: '0.875rem', fontWeight: 600, transition: 'all 0.2s',
@@ -183,18 +187,18 @@ const Login = () => {
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {mode === 'signup' && (
               <div className="form-group">
-                <label className="form-label">Full Name</label>
-                <input className="form-input" type="text" placeholder="Aarav Sharma" value={form.name} onChange={set('name')} required autoFocus />
+                <label className="form-label">{t('fullName')}</label>
+                <input className="form-input" type="text" placeholder={t('namePlaceholder')} value={form.name} onChange={set('name')} required autoFocus />
               </div>
             )}
             <div className="form-group">
-              <label className="form-label">Email Address</label>
-              <input className="form-input" type="email" placeholder="you@example.com" value={form.email} onChange={set('email')} required autoFocus={mode === 'signin'} />
+              <label className="form-label">{t('email')}</label>
+              <input className="form-input" type="email" placeholder={t('emailPlaceholder')} value={form.email} onChange={set('email')} required autoFocus={mode === 'signin'} />
             </div>
             <div className="form-group">
-              <label className="form-label">Password</label>
+              <label className="form-label">{t('password')}</label>
               <div style={{ position: 'relative' }}>
-                <input className="form-input" type={showPass ? 'text' : 'password'} placeholder="Min. 6 characters" value={form.password} onChange={set('password')} required style={{ paddingRight: '3rem' }} />
+                <input className="form-input" type={showPass ? 'text' : 'password'} placeholder={t('passwordPlaceholder')} value={form.password} onChange={set('password')} required style={{ paddingRight: '3rem' }} />
                 <button type="button" onClick={() => setShowPass(p => !p)} style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: '1rem' }}>
                   {showPass ? '🙈' : '👁️'}
                 </button>
@@ -202,20 +206,20 @@ const Login = () => {
             </div>
             {mode === 'signup' && (
               <div className="form-group">
-                <label className="form-label">Confirm Password</label>
-                <input className="form-input" type="password" placeholder="Repeat password" value={form.confirmPassword} onChange={set('confirmPassword')} required />
+                <label className="form-label">{t('confirmPassword')}</label>
+                <input className="form-input" type="password" placeholder={t('confirmPasswordPlaceholder')} value={form.confirmPassword} onChange={set('confirmPassword')} required />
               </div>
             )}
             <button type="submit" className="btn btn-primary btn-lg btn-block" disabled={loading} style={{ marginTop: '0.5rem' }}>
-              {loading ? <><span className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} /> {mode === 'signin' ? 'Signing in...' : 'Creating account...'}</> : mode === 'signin' ? '→ Sign In' : '→ Create Account'}
+              {loading ? <><span className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} /> {mode === 'signin' ? t('signingIn') : t('creatingAccount')}</> : mode === 'signin' ? `→ ${t('signIn')}` : `→ ${t('createAccount')}`}
             </button>
           </form>
 
           <div style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
             {mode === 'signin' ? (
-              <>Don't have an account?{' '}<button onClick={() => setMode('signup')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--gold-mid)', fontWeight: 600, fontSize: '0.82rem' }}>Sign up →</button></>
+              <>{t('dontHaveAccount')}{' '}<button onClick={() => setMode('signup')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--gold-mid)', fontWeight: 600, fontSize: '0.82rem' }}>{t('signUp')} →</button></>
             ) : (
-              <>Already have an account?{' '}<button onClick={() => setMode('signin')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--gold-mid)', fontWeight: 600, fontSize: '0.82rem' }}>Sign in →</button></>
+              <>{t('alreadyHaveAccount')}{' '}<button onClick={() => setMode('signin')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--gold-mid)', fontWeight: 600, fontSize: '0.82rem' }}>{t('signIn')} →</button></>
             )}
           </div>
 

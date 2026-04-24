@@ -50,9 +50,9 @@ const VoiceAssistant = () => {
       default: "मैं आपका सवाल समझ गया। ECHORA के बारे में जो मैं जानता हूँ, मैं आपकी वॉलंटियरिंग में, अवसर ढूंढने में, प्लेटफॉर्म समझने में, या किसी भी दूसरे सवालों में मदद करने के लिए यहाँ हूँ। क्या आप अपना सवाल दूसरे तरीके से पूछ सकते हैं या आप वॉलंटियरिंग या ECHORA प्लेटफॉर्म के बारे में विशेष रूप से क्या जानना चाहते हैं?"
     },
     ta: {
-      greeting: "வணக்கம்! நான் உங்கள் ECHORA குரல் உதவியாளர். தன்னார்வலர் தளம் பற்றி எல்லாவற்றிலும் உங்களுக்கு உதவ முடியும் - பணிகளைக் கண்டுபிடிப்பது, உங்கள் சுயவிவரத்தைச் சரிபார்ப்பது, முன்னிலைப்படுத்தல் அட்டவணையைப் புரிந்துகொள்வது, சந்திப்புகளைக் கண்டுபிடிப்பது, மற்றும் தன்னார்வலர் பணி பற்றிய எந்தக் கேள்விக்கும் பதிலளிப்பது. நீங்கள் என்ன தெரிந்து கொள்ள விரும்புகிறீர்கள்?",
-      help: "நான் உங்களுக்கு உதவ முடியும்: தன்னார்வலர் வாய்ப்புகளைக் கண்டுபிடிப்பதில், உங்கள் சுயவிவரம் மற்றும் புள்ளிவிவரங்களைச் சரிபார்ப்பதில், முன்னிலைப்படுத்தல் அட்டவணையைப் பார்ப்பதில், வார இறுதி சந்திப்புகளைக் கண்டுபிடிப்பதில், தளம் எவ்வாறு செயல்படுகிறது என்பதைப் புரிந்துகொள்வதில், எந்தப் பிரிவுக்கும் வழிசெலுத்துவதில், தன்னார்வலர் பணி பற்றிய கேள்விகளுக்கு பதிலளிப்பதில், மற்றும் NGOs பற்றிய தகவல்களை வழங்குவதில். எதையும் கேளுங்கள்!",
-      default: "உங்கள் கேள்வியைப் புரிந்துகொண்டேன். ECHORA பற்றி எனக்குத் தெரிந்தவற்றின் அடிப்படையில், தன்னார்வலர் பணியில், வாய்ப்புகளைக் கண்டுபிடிப்பதில், தளத்தைப் புரிந்துகொள்வதில், அல்லது வேறு எந்தக் கேள்விகளிலும் உங்களுக்கு உதவ இங்கு இருக்கிறேன். தயவுசெய்து உங்கள் கேள்வியை வேறு விதமாகக் கேட்க முடியுமா அல்லது தன்னார்வலர் பணி அல்லது ECHORA தளம் பற்றி குறிப்பாக என்ன தெரிந்து கொள்ள விரும்புகிறீர்கள் என்று சொல்லுங்கள்?"
+      greeting: "வணக்கம்! நான் உங்கள் எசோரா குரல் உதவியாளர். தன்னார்வத் தளம் பற்றி எல்லாம் தெரிந்து கொண்டு உங்களுக்கு உதவும். வேலைகளைத் தேடுதல், உங்கள் விவரத்தைப் பார்த்தல், முன்னணிப் பட்டியலைப் புரிந்துகொள்ளுதல், சந்திப்புகளைக் கண்டுபிடித்தல், தன்னார்வம் பற்றும் கேள்விகளுக்கு பதிலளித்தல். என்ன தெரிய வேண்டும்?",
+      help: "நான் உங்களுக்கு இவ்வை உதவ முடியும்: தன்னார்வ வாய்ப்புகளைத் தேடுதல், உங்கள் விவரம் மற்றும் புள்ளிகளைப் பார்த்தல், முன்னணிப் பட்டியலைப் பார்த்தல், வார இறுதி சந்திப்புகளைக் கண்டுபிடித்தல், தளம் எப்படி வேலை செய்கிறது என்பதைப் புரிந்துகொள்ளுதல், எந்தப் பகுதிக்கும் செல்லுதல், தன்னார்வம் பற்றும் கேள்விகளுக்கு பதிலளித்தல், அரசு கூட்டமைப்புகள் பற்றித் தகவல் கொடுத்தல். எதையும் கேளுங்கள்!",
+      default: "உங்கள் கேள்வியைப் புரிந்துகொண்டேன். எசோரா பற்றி எனக்குத் தெரிந்ததின் அடிப்படையில், தன்னார்வத்தில், வாய்ப்புகளைத் தேடுதலில், தளத்தைப் புரிந்துகொள்ளுதலில், அல்லது வேறு எந்தக் கேள்விகளிலும் உங்களுக்கு உதவ இங்கு இருக்கிறேன். தயவுசெய்து உங்கள் கேள்வியை வேறு விதமாகக் கேட்கவும், அல்லது தன்னார்வம் அல்லது எசோரா தளம் பற்றி குறிப்பாக என்ன அறிய விரும்பும் என்று சொல்லுங்கள்?"
     },
     kn: {
       greeting: "ನಮಸ್ಕಾರ! ನಾನು ನಿಮ್ಮ ECHORA ಧ್ವನಿ ಸಹಾಯಕ. ಸ್ವಯಂಸೇವಕ ವೇದಿಕೆಯ ಬಗ್ಗೆ ಎಲ್ಲದರಲ್ಲೂ ನಿಮಗೆ ಸಹಾಯ ಮಾಡಬಲ್ಲೆ - ಕಾರ್ಯಗಳನ್ನು ಹುಡುಕುವುದು, ನಿಮ್ಮ ಪ್ರೊಫೈಲ್ ಪರಿಶೀಲಿಸುವುದು, ಲೀಡರ್‌ಬೋರ್ಡ್ ಅರ್ಥಮಾಡಿಕೊಳ್ಳುವುದು, ಸಮ್ಮೇಳನಗಳನ್ನು ಹುಡುಕುವುದು, ಮತ್ತು ಸ್ವಯಂಸೇವಕರ ಬಗ್ಗೆ ಯಾವುದೇ ಪ್ರಶ್ನೆಗೆ ಉತ್ತರಿಸುವುದು. ನೀವು ಏನು ತಿಳಿದುಕೊಳ್ಳಲು ಬಯಸುತ್ತೀರಿ?",
@@ -70,12 +70,12 @@ const VoiceAssistant = () => {
         const voices = window.speechSynthesis.getVoices();
         setAvailableVoices(voices);
         
-        // Detect which languages have voices
+        // Detect which languages have voices with fallback logic
         const status = {
           en: voices.some(v => v.lang.startsWith('en') || v.name.toLowerCase().includes('english')),
           hi: voices.some(v => v.lang.startsWith('hi') || v.name.toLowerCase().includes('hindi')),
-          ta: voices.some(v => v.lang.startsWith('ta') || v.name.toLowerCase().includes('tamil')),
-          kn: voices.some(v => v.lang.startsWith('kn') || v.name.toLowerCase().includes('kannada'))
+          ta: voices.some(v => v.lang.startsWith('ta') || v.name.toLowerCase().includes('tamil') || v.lang.includes('IN') && v.name.toLowerCase().includes('tamil')) || voices.some(v => v.lang.includes('IN')),
+          kn: voices.some(v => v.lang.startsWith('kn') || v.name.toLowerCase().includes('kannada') || v.lang.includes('IN') && v.name.toLowerCase().includes('kannada')) || voices.some(v => v.lang.includes('IN'))
         };
         setVoiceStatus(status);
         
@@ -163,13 +163,21 @@ const VoiceAssistant = () => {
     const voices = availableVoices;
     let selectedVoice = null;
     
-    // Find appropriate voice for the language
+    // Find appropriate voice for the language with better fallback logic
     if (selectedLanguage === 'hi') {
-      selectedVoice = voices.find(voice => voice.lang.startsWith('hi') || voice.name.toLowerCase().includes('hindi'));
+      selectedVoice = voices.find(voice => voice.lang.startsWith('hi')) || 
+                   voices.find(voice => voice.name.toLowerCase().includes('hindi')) ||
+                   voices.find(voice => voice.lang.includes('IN'));
     } else if (selectedLanguage === 'ta') {
-      selectedVoice = voices.find(voice => voice.lang.startsWith('ta') || voice.name.toLowerCase().includes('tamil'));
+      selectedVoice = voices.find(voice => voice.lang.startsWith('ta')) || 
+                   voices.find(voice => voice.name.toLowerCase().includes('tamil')) ||
+                   voices.find(voice => voice.lang.includes('IN')) ||
+                   voices.find(voice => voice.name.toLowerCase().includes('indian'));
     } else if (selectedLanguage === 'kn') {
-      selectedVoice = voices.find(voice => voice.lang.startsWith('kn') || voice.name.toLowerCase().includes('kannada'));
+      selectedVoice = voices.find(voice => voice.lang.startsWith('kn')) || 
+                   voices.find(voice => voice.name.toLowerCase().includes('kannada')) ||
+                   voices.find(voice => voice.lang.includes('IN')) ||
+                   voices.find(voice => voice.name.toLowerCase().includes('indian'));
     } else {
       selectedVoice = voices.find(voice => voice.lang.startsWith('en')) || voices[0];
     }

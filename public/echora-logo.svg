@@ -1,0 +1,44 @@
+<svg width="200" height="60" viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg">
+  <!-- Logo: Two human figures forming heart shape -->
+  <defs>
+    <linearGradient id="purpleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B5CF6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7C3AED;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="blueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2563EB;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#8B5CF6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3B82F6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Left figure (purple) -->
+  <path d="M 25 30 C 25 25, 20 20, 15 20 C 10 20, 5 25, 5 30 C 5 35, 10 40, 15 40 C 20 40, 25 35, 25 30 Z" fill="url(#purpleGrad)" />
+  <path d="M 15 40 L 15 50 C 15 52, 17 54, 19 54 C 21 54, 23 52, 23 50 L 23 40" stroke="url(#purpleGrad)" stroke-width="2" fill="none" />
+  <path d="M 10 35 L 8 38" stroke="url(#purpleGrad)" stroke-width="2" fill="none" />
+  <path d="M 20 35 L 22 38" stroke="url(#purpleGrad)" stroke-width="2" fill="none" />
+  
+  <!-- Right figure (blue) -->
+  <path d="M 35 30 C 35 25, 30 20, 25 20 C 20 20, 15 25, 15 30 C 15 35, 20 40, 25 40 C 30 40, 35 35, 35 30 Z" fill="url(#blueGrad)" />
+  <path d="M 25 40 L 25 50 C 25 52, 27 54, 29 54 C 31 54, 33 52, 33 50 L 33 40" stroke="url(#blueGrad)" stroke-width="2" fill="none" />
+  <path d="M 20 35 L 18 38" stroke="url(#blueGrad)" stroke-width="2" fill="none" />
+  <path d="M 30 35 L 32 38" stroke="url(#blueGrad)" stroke-width="2" fill="none" />
+  
+  <!-- Heart shape in center -->
+  <path d="M 20 28 C 20 26, 18 24, 16 24 C 14 24, 12 26, 12 28 C 12 30, 14 32, 16 32 C 18 32, 20 30, 20 28 Z" fill="#FF6B6B" opacity="0.8" />
+  
+  <!-- Sound waves -->
+  <circle cx="8" cy="30" r="2" fill="none" stroke="url(#purpleGrad)" stroke-width="1" opacity="0.6" />
+  <circle cx="8" cy="30" r="4" fill="none" stroke="url(#purpleGrad)" stroke-width="1" opacity="0.4" />
+  <circle cx="8" cy="30" r="6" fill="none" stroke="url(#purpleGrad)" stroke-width="1" opacity="0.2" />
+  
+  <circle cx="32" cy="30" r="2" fill="none" stroke="url(#blueGrad)" stroke-width="1" opacity="0.6" />
+  <circle cx="32" cy="30" r="4" fill="none" stroke="url(#blueGrad)" stroke-width="1" opacity="0.4" />
+  <circle cx="32" cy="30" r="6" fill="none" stroke="url(#blueGrad)" stroke-width="1" opacity="0.2" />
+  
+  <!-- ECHORA text -->
+  <text x="50" y="35" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="url(#textGrad)">ECHORA</text>
+</svg>

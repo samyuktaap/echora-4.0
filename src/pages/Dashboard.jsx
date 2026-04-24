@@ -3,6 +3,8 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import { mockNGORequests, mockMeetups, mockImpactStats } from '../data/mockData';
+import { translateArray } from '../utils/translationHelper';
+import { getTranslatedSkill } from '../data/contentTranslations';
 import { CheckCircle, Star, Trophy, Handshake, MapPin, Calendar, Users, TrendingUp, Award, Target, BarChart3, Map, Navigation } from 'lucide-react';
 
 const StatCard = ({ icon: IconComponent, label, value, color, delta }) => (
@@ -20,17 +22,19 @@ const StatCard = ({ icon: IconComponent, label, value, color, delta }) => (
 
 const Dashboard = () => {
   const { profile } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const navigate = useNavigate();
   const [greeting] = useState(() => {
     const h = new Date().getHours();
     return h < 12 ? 'greetingMorning' : h < 17 ? 'greetingAfternoon' : 'greetingEvening';
   });
 
-  const matchedTasks = mockNGORequests.filter(req =>
+  const matchedTasks = translateArray(mockNGORequests.filter(req =>
     profile?.skills?.some(skill => req.requiredSkills?.includes(skill)) ||
     (profile?.state && req.state === profile?.state)
-  ).slice(0, 3);
+  ).slice(0, 3), language, 'tasks');
+
+  const translatedMeetups = translateArray(mockMeetups.slice(0, 2), language, 'meetups');
 
   const points = profile?.points || 0;
   const nextTier = points < 200 ? { name: 'Silver', needed: 200 } : points < 500 ? { name: 'Gold', needed: 500 } : { name: 'Platinum', needed: 1000 };
@@ -96,7 +100,7 @@ const Dashboard = () => {
             <button onClick={() => navigate('/tasks')} className="btn btn-secondary btn-sm">{t('viewAll')}</button>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-            {(matchedTasks.length > 0 ? matchedTasks : mockNGORequests.slice(0, 3)).map(task => (
+            {(matchedTasks.length > 0 ? matchedTasks : translateArray(mockNGORequests.slice(0, 3), language, 'tasks')).map(task => (
               <div key={task.id} className="card card-hover fade-in">
                 <div className="card-body" style={{ padding: '1.25rem 1.5rem' }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem' }}>
@@ -109,7 +113,7 @@ const Dashboard = () => {
                         <span className="badge badge-gray" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                           <MapPin size={12} strokeWidth={2} /> {task.location}, {task.state}
                         </span>
-                        {task.requiredSkills?.map(s => <span key={s} className="badge badge-primary">{s}</span>)}
+                        {task.requiredSkills?.map(s => <span key={s} className="badge badge-primary">{getTranslatedSkill(language, s)}</span>)}
                       </div>
                     </div>
                     <button onClick={() => navigate('/tasks')} className="btn btn-primary btn-sm" style={{ flexShrink: 0 }}>{t('apply')}</button>
@@ -128,7 +132,7 @@ const Dashboard = () => {
               <h2 style={{ fontSize: '1rem', fontFamily: 'var(--font-display)' }}>{t('upcomingMeetups')}</h2>
               <button onClick={() => navigate('/meetups')} className="btn btn-ghost btn-sm" style={{ fontSize: '0.75rem' }}>{t('seeAll')}</button>
             </div>
-            {mockMeetups.slice(0, 2).map(m => (
+            {translatedMeetups.map(m => (
               <div key={m.id} className="card card-hover" style={{ marginBottom: '0.6rem', cursor: 'pointer' }} onClick={() => navigate('/meetups')}>
                 <div className="card-body" style={{ padding: '1rem 1.25rem' }}>
                   <div style={{ fontWeight: 600, fontSize: '0.875rem', marginBottom: '0.2rem', fontFamily: 'var(--font-display)' }}>{m.name}</div>

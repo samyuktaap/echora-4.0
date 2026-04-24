@@ -10,18 +10,15 @@ const LoadingScreen = () => (
     flexDirection: 'column',
     gap: '1.5rem',
   }}>
-    <div style={{
-      width: 52,
-      height: 52,
-      borderRadius: '12px',
-      background: 'var(--gold-grad)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontSize: '1.5rem',
-      boxShadow: 'var(--shadow-gold)',
-      animation: 'pulse 2s ease-in-out infinite',
-    }}>⚡</div>
+    <img 
+        src="/echora-logo.svg" 
+        alt="ECHORA"
+        style={{
+          width: 60, height: 60,
+          boxShadow: 'var(--shadow-gold)',
+          animation: 'pulse 2s ease-in-out infinite',
+        }}
+      />
     <div style={{ textAlign: 'center' }}>
       <div style={{
         fontFamily: 'var(--font-display)',

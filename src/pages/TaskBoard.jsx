@@ -2,9 +2,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import toast from 'react-hot-toast';
 import { MapPin, Clock, Users, Briefcase, Calendar, Check, Search, Filter, SlidersHorizontal, ArrowRight, Zap, Target } from 'lucide-react';
 import { INDIA_STATES } from '../data/mockData';
+import { getTranslatedContent, getTranslatedSkill, getTranslatedUrgency } from '../data/contentTranslations';
+import { translateObject, translateArray } from '../utils/translationHelper';
 
 // ── SCORING FUNCTION ──────────────────────────────────────────────────────────
 export function calculateMatchScore(profile, task) {
@@ -39,6 +42,7 @@ export function calculateMatchScore(profile, task) {
 }
 
 const MatchIndicator = ({ percent }) => {
+  const { t } = useLanguage();
   const color = percent >= 80 ? '#22c55e' : percent >= 45 ? '#f59e0b' : '#ef4444';
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'rgba(255,255,255,0.03)', padding: '0.4rem 0.8rem', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)' }}>
@@ -50,7 +54,7 @@ const MatchIndicator = ({ percent }) => {
         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 800 }}>{percent}</div>
       </div>
       <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
-        {percent >= 80 ? 'Perfect match' : percent >= 45 ? 'Qualified' : 'Requires review'}
+        {percent >= 80 ? t('perfectMatch') : percent >= 45 ? t('qualified') : t('requiresReview')}
       </span>
     </div>
   );
@@ -58,6 +62,7 @@ const MatchIndicator = ({ percent }) => {
 
 const TaskBoard = () => {
   const { user, profile } = useAuth();
+  const { language, t } = useLanguage();
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [appliedIds, setAppliedIds] = useState(new Set());
@@ -104,7 +109,10 @@ const TaskBoard = () => {
   }
 
   const scoredTasks = useMemo(() => {
-    return tasks
+    // First translate all tasks based on current language
+    const translatedTasks = translateArray(tasks, language, 'tasks');
+    
+    return translatedTasks
       .map(t => ({
         ...t,
         matchScore: calculateMatchScore(profile, t),
@@ -113,8 +121,8 @@ const TaskBoard = () => {
       .filter(t => {
         if (search && !t.title.toLowerCase().includes(search.toLowerCase()) && !t.ngo_name?.toLowerCase().includes(search.toLowerCase())) return false;
         if (filterState && t.state !== filterState) return false;
-        if (filterCause && t.cause !== filterCause) return false;
-        if (showMySkillsOnly && t.matchedSkills.length === 0) return false;
+        if (filterCause && !t.cause?.includes(filterCause)) return false;
+        if (showMySkillsOnly && !(t.required_skills || []).some(s => (profile?.skills || []).map(x => x.toLowerCase()).includes(s.toLowerCase()))) return false;
         return true;
       })
       .sort((a, b) => {
@@ -126,7 +134,7 @@ const TaskBoard = () => {
         }
         return 0;
       });
-  }, [tasks, profile, search, filterState, filterCause, showMySkillsOnly, sortBy]);
+  }, [tasks, profile, search, filterState, filterCause, showMySkillsOnly, sortBy, language]);
 
   const uniqueCauses = [...new Set(tasks.map(t => t.cause).filter(Boolean))];
 
@@ -185,35 +193,106 @@ const TaskBoard = () => {
       <div className="page-header" style={{ marginBottom: '2.5rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
           <Zap style={{ color: 'var(--gold-mid)' }} size={20} />
-          <span style={{ fontSize: '0.85rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--gold-mid)', letterSpacing: '0.1em' }}>Opportunity Explorer</span>
+          <span style={{ fontSize: '0.85rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--gold-mid)', letterSpacing: '0.1em' }}>{t('opportunityExplorer')}</span>
         </div>
-        <h1 className="page-title" style={{ fontSize: '2.5rem', fontWeight: 800 }}>Find Your Next Mission</h1>
-        <p className="page-subtitle" style={{ fontSize: '1.1rem' }}>We've matched your skills with these high-impact tasks across India.</p>
+        <h1 className="page-title" style={{ fontSize: '2.5rem', fontWeight: 800 }}>{t('findYourNextMission')}</h1>
+        <p className="page-subtitle" style={{ fontSize: '1.1rem' }}>{t('matchedSkillsSubtitle')}</p>
       </div>
 
       {/* Filters Bar */}
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '2.5rem', flexWrap: 'wrap', alignItems: 'center', background: 'var(--bg-secondary)', padding: '1.25rem', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
-        <div style={{ position: 'relative', flex: 1, minWidth: '250px' }}>
-          <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-          <input className="form-input" placeholder="Search NGOs or roles..." value={search} onChange={e => setSearch(e.target.value)} style={{ paddingLeft: '2.8rem', height: '44px', borderRadius: '10px' }} />
+      <div style={{ background: 'var(--bg-secondary)', padding: '1.5rem', borderRadius: '16px', border: '1px solid var(--border-color)', marginBottom: '2.5rem' }}>
+        {/* Search Bar - Full Width Row */}
+        <div style={{ position: 'relative', marginBottom: '1.5rem', width: '100%' }}>
+          <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', zIndex: 1 }} />
+          <input 
+            className="form-input" 
+            placeholder={t('searchNGOsOrRoles')} 
+            value={search} 
+            onChange={e => setSearch(e.target.value)} 
+            style={{ 
+              paddingLeft: '2.8rem', 
+              height: '48px', 
+              borderRadius: '10px', 
+              width: '100%',
+              fontSize: '0.95rem',
+              border: '1px solid var(--border-color)'
+            }} 
+          />
         </div>
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <select className="form-select" value={filterState} onChange={e => setFilterState(e.target.value)} style={{ height: '44px', borderRadius: '10px', minWidth: '130px' }}>
-            <option value="">All States</option>
-            {INDIA_STATES.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
-          <select className="form-select" value={filterCause} onChange={e => setFilterCause(e.target.value)} style={{ height: '44px', borderRadius: '10px', minWidth: '130px' }}>
-            <option value="">All Causes</option>
-            {uniqueCauses.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
-          <select className="form-select" value={sortBy} onChange={e => setSortBy(e.target.value)} style={{ height: '44px', borderRadius: '10px' }}>
-            <option value="match">Sort: Match Score</option>
-            <option value="urgency">Sort: Urgency</option>
-            <option value="newest">Sort: Newest</option>
-          </select>
-          <button onClick={() => setShowMySkillsOnly(!showMySkillsOnly)} style={{ height: '44px', borderRadius: '10px', padding: '0 1rem', background: showMySkillsOnly ? 'rgba(201,168,76,0.1)' : 'transparent', color: showMySkillsOnly ? 'var(--gold-mid)' : 'var(--text-muted)', border: '1px solid', borderColor: showMySkillsOnly ? 'var(--gold-mid)' : 'var(--border-color)', fontWeight: 600, cursor: 'pointer' }}>
-             {showMySkillsOnly ? '✨ Skill Matches' : 'All Tasks'}
-          </button>
+        
+        {/* Filter Controls - Two Row Layout */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {/* First Row - State and Causes */}
+          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+            <select 
+              className="form-select" 
+              value={filterState} 
+              onChange={e => setFilterState(e.target.value)} 
+              style={{ 
+                height: '44px', 
+                borderRadius: '10px',
+                flex: '1',
+                minWidth: '150px',
+                maxWidth: '200px'
+              }}
+            >
+              <option value="">{t('allStatesFilter')}</option>
+              {INDIA_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+            <select 
+              className="form-select" 
+              value={filterCause} 
+              onChange={e => setFilterCause(e.target.value)} 
+              style={{ 
+                height: '44px', 
+                borderRadius: '10px',
+                flex: '1',
+                minWidth: '150px',
+                maxWidth: '200px'
+              }}
+            >
+              <option value="">{t('allCauses')}</option>
+              {uniqueCauses.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+          
+          {/* Second Row - Sort and Toggle */}
+          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
+            <select 
+              className="form-select" 
+              value={sortBy} 
+              onChange={e => setSortBy(e.target.value)} 
+              style={{ 
+                height: '44px', 
+                borderRadius: '10px',
+                minWidth: '180px',
+                flex: '1'
+              }}
+            >
+              <option value="match">{t('sortBestMatch')}</option>
+              <option value="urgency">{t('sortMostUrgent')}</option>
+              <option value="newest">{t('sortNewest')}</option>
+            </select>
+            <button 
+              onClick={() => setShowMySkillsOnly(!showMySkillsOnly)} 
+              style={{ 
+                height: '44px', 
+                borderRadius: '10px', 
+                padding: '0 1.5rem', 
+                background: showMySkillsOnly ? 'rgba(201,168,76,0.1)' : 'transparent', 
+                color: showMySkillsOnly ? 'var(--gold-mid)' : 'var(--text-muted)', 
+                border: '1px solid', 
+                borderColor: showMySkillsOnly ? 'var(--gold-mid)' : 'var(--border-color)', 
+                fontWeight: 600, 
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                minWidth: '120px',
+                flexShrink: 0
+              }}
+            >
+              {showMySkillsOnly ? t('skillMatchesBtn') : t('allTasksBtn')}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -221,13 +300,13 @@ const TaskBoard = () => {
       {loading ? (
         <div style={{ textAlign: 'center', padding: '5rem' }}>
           <div className="spinner" style={{ width: 48, height: 48, margin: '0 auto 1.5rem' }} />
-          <p style={{ color: 'var(--text-muted)' }}>Fetching the best matches for you...</p>
+          <p style={{ color: 'var(--text-muted)' }}>{t('fetchingBestMatches')}</p>
         </div>
       ) : scoredTasks.length === 0 ? (
         <div className="card" style={{ padding: '5rem', textAlign: 'center', borderStyle: 'dashed' }}>
           <div style={{ fontSize: '3rem', marginBottom: '1.5rem', opacity: 0.3 }}>🔍</div>
-          <h3 style={{ fontSize: '1.3rem', fontWeight: 800 }}>No opportunities found</h3>
-          <p style={{ color: 'var(--text-muted)' }}>Try adjusting your filters or search terms.</p>
+          <h3 style={{ fontSize: '1.3rem', fontWeight: 800 }}>{t('noOpportunitiesFound')}</h3>
+          <p style={{ color: 'var(--text-muted)' }}>{t('tryAdjustingFilters')}</p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -256,8 +335,12 @@ const TaskBoard = () => {
                            {task.ngo_name?.charAt(0) || 'N'}
                          </div>
                          <div>
-                            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.2rem' }}>{task.ngo_name}</div>
-                            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'white', margin: 0 }}>{task.title}</h2>
+                            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.2rem' }}>
+                              {task.ngo_name}
+                            </div>
+                            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'white', margin: 0 }}>
+                              {task.title}
+                            </h2>
                          </div>
                       </div>
                       <MatchIndicator percent={task.matchScore} />
@@ -290,13 +373,15 @@ const TaskBoard = () => {
                         const isMatch = task.matchedSkills.includes(s);
                         return (
                           <span key={s} style={{ 
-                            background: isMatch ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.03)',
-                            color: isMatch ? '#4ade80' : 'var(--text-muted)',
-                            border: '1px solid', borderColor: isMatch ? 'rgba(34,197,94,0.2)' : 'rgba(255,255,255,0.05)',
-                            padding: '0.35rem 0.75rem', borderRadius: '8px', fontSize: '0.72rem', fontWeight: 700,
-                            display: 'flex', alignItems: 'center', gap: '0.3rem'
+                            padding: '0.25rem 0.75rem', 
+                            borderRadius: '20px', 
+                            fontSize: '0.75rem', 
+                            fontWeight: 600,
+                            background: isMatch ? 'rgba(34,197,94,0.2)' : 'rgba(255,255,255,0.1)',
+                            color: isMatch ? '#22c55e' : 'var(--text-muted)',
+                            border: isMatch ? '1px solid rgba(34,197,94,0.3)' : '1px solid rgba(255,255,255,0.2)'
                           }}>
-                            {isMatch && <Check size={12} />} {s}
+                            {getTranslatedSkill(language, s)}
                           </span>
                         );
                       })}
@@ -304,7 +389,7 @@ const TaskBoard = () => {
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '1.5rem', borderTop: '1px solid var(--border-color)' }}>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                         Urgency: <span style={{ color: task.urgency === 'high' ? '#ef4444' : task.urgency === 'medium' ? '#f59e0b' : '#22c55e', fontWeight: 700, textTransform: 'uppercase' }}>{task.urgency}</span>
+                         {t('urgency')}: <span style={{ color: task.urgency === 'high' ? '#ef4444' : task.urgency === 'medium' ? '#f59e0b' : '#22c55e', fontWeight: 700, textTransform: 'uppercase' }}>{getTranslatedUrgency(language, task.urgency)}</span>
                       </div>
                       
                       <div style={{ display: 'flex', gap: '0.75rem' }}>

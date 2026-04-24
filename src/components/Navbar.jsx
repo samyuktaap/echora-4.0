@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { mockNGORequests } from '../data/mockData';
 import { Search, Sun, Moon, Bell, MapPin, Menu, Building, Star, Handshake, Globe } from 'lucide-react';
+import LanguageSwitcher from './LanguageSwitcher';
 
 const PAGE_TITLES = {
   '/dashboard': 'pageDashboard',

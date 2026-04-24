@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import toast from 'react-hot-toast';
 import { SKILLS_LIST, INDIA_STATES } from '../data/mockData';
 
@@ -9,6 +10,7 @@ const CAUSES = ['Education', 'Healthcare', 'Technology', 'Community', 'Environme
 
 const NGOForm = () => {
   const { user, profile } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({
@@ -83,8 +85,8 @@ const NGOForm = () => {
   return (
     <div className="page-container">
       <div className="page-header">
-        <h1 className="page-title">Post a Volunteer Opportunity</h1>
-        <p className="page-subtitle">Volunteers will see this and apply directly to you</p>
+        <h1 className="page-title">{t('postVolunteerOpportunity')}</h1>
+        <p className="page-subtitle">{t('volunteersWillApplyDirectly')}</p>
       </div>
 
       <div className="card card-gold" style={{ maxWidth: 800, margin: '0 auto' }}>
@@ -93,28 +95,28 @@ const NGOForm = () => {
 
             {/* Role title */}
             <div className="form-group">
-              <label className="form-label">Role / Title *</label>
-              <input className={inp} placeholder="e.g. English Teaching Assistant" value={form.title} onChange={set('title')} required />
+              <label className="form-label">{t('roleTitle')}</label>
+              <input className={inp} placeholder={t('rolePlaceholder')} value={form.title} onChange={set('title')} required />
             </div>
 
             {/* Description */}
             <div className="form-group">
-              <label className="form-label">Description *</label>
-              <textarea className="form-textarea" placeholder="What will volunteers do? What impact will they make?" value={form.description} onChange={set('description')} required style={{ minHeight: 100 }} />
+              <label className="form-label">{t('descriptionLabel')}</label>
+              <textarea className="form-textarea" placeholder={t('descriptionPlaceholder')} value={form.description} onChange={set('description')} required style={{ minHeight: 100 }} />
             </div>
 
             <div className="grid-2">
               {/* Cause */}
               <div className="form-group">
-                <label className="form-label">Cause</label>
+                <label className="form-label">{t('causeLabel')}</label>
                 <select className={sel} value={form.cause} onChange={set('cause')}>
-                  <option value="">Select cause</option>
+                  <option value="">{t('selectCause')}</option>
                   {CAUSES.map(c => <option key={c}>{c}</option>)}
                 </select>
               </div>
               {/* Urgency */}
               <div className="form-group">
-                <label className="form-label">Urgency</label>
+                <label className="form-label">{t('urgencyLabel')}</label>
                 <select className={sel} value={form.urgency} onChange={set('urgency')}>
                   <option value="high">🔴 High — Immediate need</option>
                   <option value="medium">🟡 Medium — Within a month</option>
@@ -126,14 +128,14 @@ const NGOForm = () => {
             <div className="grid-2">
               {/* Location */}
               <div className="form-group">
-                <label className="form-label">City *</label>
-                <input className={inp} placeholder="e.g. Mumbai" value={form.location} onChange={set('location')} required />
+                <label className="form-label">{t('cityLabel')}</label>
+                <input className={inp} placeholder={t('cityPlaceholder')} value={form.location} onChange={set('location')} required />
               </div>
               {/* State */}
               <div className="form-group">
-                <label className="form-label">State</label>
+                <label className="form-label">{t('stateLabel')}</label>
                 <select className={sel} value={form.state} onChange={set('state')}>
-                  <option value="">Select State</option>
+                  <option value="">{t('selectState')}</option>
                   {INDIA_STATES.map(s => <option key={s}>{s}</option>)}
                 </select>
               </div>
@@ -142,21 +144,21 @@ const NGOForm = () => {
             <div className="grid-2">
               {/* Availability */}
               <div className="form-group">
-                <label className="form-label">Availability Required</label>
+                <label className="form-label">{t('availabilityRequired')}</label>
                 <select className={sel} value={form.availability} onChange={set('availability')}>
-                  <option value="Weekdays">Weekdays</option>
-                  <option value="Weekends">Weekends</option>
-                  <option value="Flexible">Flexible</option>
-                  <option value="Full-time">Full-time</option>
+                  <option value="Weekdays">{t('weekdays')}</option>
+                  <option value="Weekends">{t('weekends')}</option>
+                  <option value="Flexible">{t('flexibleLabel')}</option>
+                  <option value="Full-time">{t('fullTime')}</option>
                 </select>
               </div>
               {/* Min experience */}
               <div className="form-group">
-                <label className="form-label">Min. Experience</label>
+                <label className="form-label">{t('minExperience')}</label>
                 <select className={sel} value={form.min_experience} onChange={set('min_experience')}>
-                  <option value="Beginner">Any (Beginner OK)</option>
-                  <option value="Intermediate">Intermediate (1–2 yrs)</option>
-                  <option value="Expert">Expert (3+ yrs)</option>
+                  <option value="Beginner">{t('anyBeginner')}</option>
+                  <option value="Intermediate">{t('intermediate12')}</option>
+                  <option value="Expert">{t('expert3plus')}</option>
                 </select>
               </div>
             </div>
@@ -164,19 +166,19 @@ const NGOForm = () => {
             <div className="grid-2">
               {/* Spots */}
               <div className="form-group">
-                <label className="form-label">Spots Available</label>
+                <label className="form-label">{t('spotsAvailable')}</label>
                 <input className={inp} type="number" min={1} value={form.spots} onChange={set('spots')} />
               </div>
               {/* Deadline */}
               <div className="form-group">
-                <label className="form-label">Application Deadline</label>
+                <label className="form-label">{t('applicationDeadline')}</label>
                 <input className={inp} type="date" value={form.deadline} onChange={set('deadline')} />
               </div>
             </div>
 
             {/* Skills */}
             <div className="form-group">
-              <label className="form-label">Required Skills</label>
+              <label className="form-label">{t('requiredSkillsLabel')}</label>
               <div className="chip-group">
                 {SKILLS_LIST.map(s => (
                   <div
@@ -192,18 +194,18 @@ const NGOForm = () => {
 
             {/* Additional info */}
             <div className="form-group">
-              <label className="form-label">Additional Information</label>
-              <textarea className="form-textarea" placeholder="Anything else volunteers should know?" value={form.additional_info} onChange={set('additional_info')} style={{ minHeight: 80 }} />
+              <label className="form-label">{t('additionalInfo')}</label>
+              <textarea className="form-textarea" placeholder={t('additionalInfoPlaceholder')} value={form.additional_info} onChange={set('additional_info')} style={{ minHeight: 80 }} />
             </div>
 
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
               <button type="button" className="btn btn-secondary" onClick={() => navigate('/ngo-dashboard')}>
-                Cancel
+                {t('cancel')}
               </button>
               <button type="submit" className="btn btn-primary btn-lg" disabled={submitting}>
                 {submitting
-                  ? <><span className="spinner" style={{ width: 20, height: 20, borderWidth: 2 }} /> Posting...</>
-                  : '→ Post Opportunity'}
+                  ? <><span className="spinner" style={{ width: 20, height: 20, borderWidth: 2 }} /> {t('postingText')}</>
+                  : t('postOpportunityBtn')}
               </button>
             </div>
           </form>

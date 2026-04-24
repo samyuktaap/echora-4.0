@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { mockVolunteers } from '../data/mockData';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { Trophy, Award, MapPin, CheckCircle, Users, Star, Heart, Hammer, BookOpen, Sun, Target, Crown, Medal, TrendingUp, Search, Filter } from 'lucide-react';
 
 const TrophyIcons = [Crown, Medal, Award];
@@ -8,6 +9,7 @@ const PODIUM_COLORS = ['#fbbf24', '#94a3b8', '#b45309'];
 
 const Leaderboard = () => {
   const { profile } = useAuth();
+  const { t } = useLanguage();
   const [filter, setFilter] = useState('all');
   const [selectedSkill, setSelectedSkill] = useState('');
   const [search, setSearch] = useState('');
@@ -42,10 +44,10 @@ const Leaderboard = () => {
       <div className="page-header" style={{ marginBottom: '3rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
           <Trophy style={{ color: 'var(--gold-mid)' }} />
-          <span style={{ fontSize: '0.85rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--gold-mid)', letterSpacing: '0.1em' }}>Hall of Fame</span>
+          <span style={{ fontSize: '0.85rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--gold-mid)', letterSpacing: '0.1em' }}>{t('hallOfFame')}</span>
         </div>
-        <h1 className="page-title" style={{ fontSize: '3rem', fontWeight: 800 }}>Impact Leaders</h1>
-        <p className="page-subtitle" style={{ fontSize: '1.2rem' }}>The most dedicated changemakers across the nation</p>
+        <h1 className="page-title" style={{ fontSize: '3rem', fontWeight: 800 }}>{t('impactLeaders')}</h1>
+        <p className="page-subtitle" style={{ fontSize: '1.2rem' }}>{t('mostDedicatedChangemakers')}</p>
       </div>
 
       {/* Top 3 Podium */}
@@ -107,13 +109,13 @@ const Leaderboard = () => {
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', background: 'var(--bg-secondary)', padding: '1rem', borderRadius: '16px', border: '1px solid var(--border-color)', flexWrap: 'wrap', alignItems: 'center' }}>
         <div style={{ position: 'relative', flex: 1, minWidth: '250px' }}>
           <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-          <input className="form-input" placeholder="Search volunteers..." value={search} onChange={e => setSearch(e.target.value)} style={{ paddingLeft: '2.8rem', height: '44px', borderRadius: '10px' }} />
+          <input className="form-input" placeholder={t('searchVolunteers')} value={search} onChange={e => setSearch(e.target.value)} style={{ paddingLeft: '2.8rem', height: '44px', borderRadius: '10px' }} />
         </div>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           {[
-            { label: 'Global', val: 'all' },
-            { label: 'State', val: 'state', disabled: !profile?.state },
-            { label: 'Skills', val: 'skill' },
+            { label: t('globalFilter'), val: 'all' },
+            { label: t('stateFilter'), val: 'state', disabled: !profile?.state },
+            { label: t('skillsFilter'), val: 'skill' },
           ].map(opt => (
             <button key={opt.val}
               onClick={() => setFilter(opt.val)}
@@ -132,7 +134,7 @@ const Leaderboard = () => {
         </div>
         {userRank > 0 && (
           <div style={{ marginLeft: 'auto', background: 'rgba(201,168,76,0.1)', padding: '0.5rem 1rem', borderRadius: '10px', border: '1px solid rgba(201,168,76,0.2)' }}>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Your Global Rank</span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>{t('yourGlobalRank')}</span>
             <div style={{ fontSize: '1.25rem', fontWeight: 900, color: 'var(--gold-mid)' }}>#{userRank}</div>
           </div>
         )}
@@ -162,7 +164,7 @@ const Leaderboard = () => {
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><MapPin size={12} /> {v.state || 'India'}</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><CheckCircle size={12} /> {v.tasksCompleted || 0} tasks done</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><CheckCircle size={12} /> {v.tasksCompleted || 0} {t('tasksDoneLabel')}</div>
                   </div>
                 </div>
 
@@ -176,7 +178,7 @@ const Leaderboard = () => {
 
                 <div style={{ textAlign: 'right', minWidth: '100px' }}>
                   <div className="gradient-text" style={{ fontSize: '1.6rem', fontWeight: 900, fontFamily: 'var(--font-display)' }}>{v.points}</div>
-                  <div style={{ fontSize: '0.6rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.1em' }}>Impact Points</div>
+                  <div style={{ fontSize: '0.6rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.1em' }}>{t('impactPoints')}</div>
                 </div>
               </div>
             </div>
@@ -188,8 +190,8 @@ const Leaderboard = () => {
       {ranked.length === 0 && (
         <div style={{ textAlign: 'center', padding: '5rem 2rem' }}>
           <Search size={48} style={{ color: 'var(--text-muted)', marginBottom: '1.5rem', opacity: 0.3 }} />
-          <h3 style={{ fontSize: '1.5rem', fontWeight: 800 }}>No changemakers found</h3>
-          <p style={{ color: 'var(--text-muted)' }}>Try adjusting your filters or search terms.</p>
+          <h3 style={{ fontSize: '1.5rem', fontWeight: 800 }}>{t('noChangemakersFound')}</h3>
+          <p style={{ color: 'var(--text-muted)' }}>{t('tryAdjustingFilters')}</p>
         </div>
       )}
     </div>

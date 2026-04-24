@@ -76,6 +76,31 @@ export const TRANSLATIONS = {
     voiceStatus: 'Voice Status',
     currentLanguage: 'Current Language',
     selectLanguage: 'Select Language',
+    // Loading states
+    fetchingData: 'Fetching data...',
+    processingRequest: 'Processing request...',
+    uploadingFile: 'Uploading file...',
+    savingChanges: 'Saving changes...',
+    
+    // Login missing keys
+    accountCreatedVerify: 'Account created! Please verify your email.',
+    welcomeToEchora: 'Welcome to ECHORA!',
+    welcomeBack: 'Welcome back!',
+    featureMapDiscovery: 'All-India Map Discovery',
+    featureAIMatching: 'AI-Powered Matching',
+    featurePointsBadges: 'Points & Badges',
+    featureRealTimeMetrics: 'Real-time Impact Metrics',
+    featureMultilingual: 'Multilingual Support',
+    featureWeekendMeetups: 'Weekend Meetups',
+    signInToAccount: 'Sign in to your account',
+    joinVolunteerNetwork: 'Join India\'s largest volunteer network',
+    fullName: 'Full Name',
+    namePlaceholder: 'John Doe',
+    emailPlaceholder: 'you@example.com',
+    passwordPlaceholder: '••••••••',
+    confirmPasswordPlaceholder: '••••••••',
+    signingIn: 'Signing in...',
+    creatingAccount: 'Creating account...',
     volume: 'Volume',
     speechRate: 'Speech Rate',
     voiceInput: 'Voice Input',
@@ -132,6 +157,8 @@ export const TRANSLATIONS = {
     urgencyMedium: 'Medium',
     urgencyLow: 'Low',
     yourLocation: 'Your Location',
+    manageApplicationsNav: 'Manage Applications',
+    postOpportunityNav: 'Post Opportunity',
   },
   hi: {
     appName: 'ECHORA',
@@ -248,6 +275,8 @@ export const TRANSLATIONS = {
     urgencyMedium: 'मध्यम',
     urgencyLow: 'कम',
     yourLocation: 'आपका स्थान',
+    manageApplicationsNav: 'आवेदनों का प्रबंधन करें',
+    postOpportunityNav: 'अवसर पोस्ट करें',
   },
   ta: {
     appName: 'ECHORA',
@@ -364,6 +393,8 @@ export const TRANSLATIONS = {
     urgencyMedium: 'நடுத்தர',
     urgencyLow: 'குறைந்த',
     yourLocation: 'உங்கள் இடம்',
+    manageApplicationsNav: 'விண்ணப்பங்களை நிர்வகி',
+    postOpportunityNav: 'வாய்ப்பை பதிவிடு',
   },
   kn: {
     appName: 'ECHORA',
@@ -480,6 +511,8 @@ export const TRANSLATIONS = {
     urgencyMedium: 'ಮಧ್ಯಮ',
     urgencyLow: 'ಕಡಿಮೆ',
     yourLocation: 'ನಿಮ್ಮ ಸ್ಥಳ',
+    manageApplicationsNav: 'ಅರ್ಜಿಗಳನ್ನು ನಿರ್ವಹಿಸಿ',
+    postOpportunityNav: 'ಅವಕಾಶ ಪ್ರಕಟಿಸಿ',
   },
 };
 
@@ -488,8 +521,15 @@ export const LanguageProvider = ({ children }) => {
     const saved = localStorage.getItem('echora_language');
     return saved || 'en';
   });
+  const [, setForceUpdate] = useState({});
 
   useEffect(() => {
+    // Register the AI translation model notifier to instantly re-render 
+    // the UI when dynamic NGO posts are translated
+    import('../services/aiTranslation').then(({ setTranslationNotifier }) => {
+      setTranslationNotifier(() => setForceUpdate({}));
+    });
+    
     localStorage.setItem('echora_language', language);
     document.documentElement.lang = language === 'hi' ? 'hi-IN' : language === 'ta' ? 'ta-IN' : language === 'kn' ? 'kn-IN' : 'en';
   }, [language]);

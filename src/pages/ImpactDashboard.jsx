@@ -4,6 +4,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
 import { mockImpactStats } from '../data/mockData';
+import { useLanguage } from '../context/LanguageContext';
 import { TrendingUp, Users, CheckCircle2, Building2, Map, Clock, Zap, Globe2, ArrowUpRight } from 'lucide-react';
 
 const COLORS = ['#3b82f6', '#ef4444', '#c9a84c', '#22c55e', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6'];
@@ -27,13 +28,14 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 const ImpactDashboard = () => {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('overview');
 
   const statCards = [
-    { icon: <Users size={24} />, label: 'Active Volunteers', value: mockImpactStats.totalVolunteers.toLocaleString(), color: '#3b82f6', trend: '+12% this month' },
-    { icon: <CheckCircle2 size={24} />, label: 'Tasks Delivered', value: mockImpactStats.tasksCompleted.toLocaleString(), color: '#22c55e', trend: '+24% this month' },
-    { icon: <Building2 size={24} />, label: 'Partner NGOs', value: mockImpactStats.ngosSupported, color: '#c9a84c', trend: '+7 new partners' },
-    { icon: <Globe2 size={24} />, label: 'Reach (Cities)', value: mockImpactStats.citiesCovered, color: '#f59e0b', trend: 'Pan-India Presence' },
+    { icon: <Users size={24} />, label: t('activeVolunteers'), value: mockImpactStats.totalVolunteers.toLocaleString(), color: '#3b82f6', trend: '+12% this month' },
+    { icon: <CheckCircle2 size={24} />, label: t('tasksDelivered'), value: mockImpactStats.tasksCompleted.toLocaleString(), color: '#22c55e', trend: '+24% this month' },
+    { icon: <Building2 size={24} />, label: t('partnerNGOs'), value: mockImpactStats.ngosSupported, color: '#c9a84c', trend: '+7 new partners' },
+    { icon: <Globe2 size={24} />, label: t('reachCities'), value: mockImpactStats.citiesCovered, color: '#f59e0b', trend: 'Pan-India Presence' },
   ];
 
   return (
@@ -42,19 +44,19 @@ const ImpactDashboard = () => {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
             <TrendingUp style={{ color: 'var(--gold-mid)' }} />
-            <span style={{ fontSize: '0.85rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--gold-mid)', letterSpacing: '0.1em' }}>Network Analytics</span>
+            <span style={{ fontSize: '0.85rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--gold-mid)', letterSpacing: '0.1em' }}>{t('networkAnalytics')}</span>
           </div>
-          <h1 className="page-title" style={{ fontSize: '3rem', fontWeight: 800 }}>Impact Command Center</h1>
-          <p className="page-subtitle" style={{ fontSize: '1.2rem' }}>Measuring real-world change through volunteer actions</p>
+          <h1 className="page-title" style={{ fontSize: '3rem', fontWeight: 800 }}>{t('impactCommandCenter')}</h1>
+          <p className="page-subtitle" style={{ fontSize: '1.2rem' }}>{t('measuringRealWorldChange')}</p>
         </div>
         <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '16px', border: '1px solid var(--border-color)', display: 'flex', gap: '1.5rem' }}>
            <div>
-             <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Total Hours</div>
+             <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>{t('totalHours')}</div>
              <div style={{ fontSize: '1.5rem', fontWeight: 900, color: 'white' }}>18,540</div>
            </div>
            <div style={{ width: '1px', background: 'var(--border-color)' }} />
            <div>
-             <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Impact Value</div>
+             <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>{t('impactValue')}</div>
              <div style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--gold-mid)' }}>$277.5K</div>
            </div>
         </div>
@@ -83,18 +85,18 @@ const ImpactDashboard = () => {
 
       {/* Tabs Control */}
       <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '2.5rem', background: 'rgba(255,255,255,0.03)', padding: '0.5rem', borderRadius: '16px', border: '1px solid var(--border-color)', width: 'fit-content' }}>
-        {['overview', 'growth', 'skills', 'hours'].map(tab => (
-          <button key={tab}
-            onClick={() => setActiveTab(tab)}
+        {[{ key: 'overview', label: t('overview') }, { key: 'growth', label: t('growth') }, { key: 'skills', label: t('skills') }, { key: 'hours', label: t('hours') }].map(({ key, label }) => (
+          <button key={key}
+            onClick={() => setActiveTab(key)}
             style={{
               padding: '0.75rem 1.5rem', borderRadius: '12px', fontSize: '0.85rem', fontWeight: 800,
               border: 'none', cursor: 'pointer', transition: 'all 0.2s',
-              color: activeTab === tab ? '#1a0e05' : 'var(--text-secondary)',
-              background: activeTab === tab ? 'var(--gold-grad)' : 'transparent',
+              color: activeTab === key ? '#1a0e05' : 'var(--text-secondary)',
+              background: activeTab === key ? 'var(--gold-grad)' : 'transparent',
               textTransform: 'capitalize'
             }}
           >
-            {tab}
+            {label}
           </button>
         ))}
       </div>
@@ -106,8 +108,8 @@ const ImpactDashboard = () => {
             {/* Monthly Trend Area Chart */}
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                 <h3 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Activity Growth</h3>
-                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>LATEST 6 MONTHS</div>
+                 <h3 style={{ fontSize: '1.25rem', fontWeight: 800 }}>{t('activityGrowth')}</h3>
+                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t('latest6Months')}</div>
               </div>
               <ResponsiveContainer width="100%" height={350}>
                 <AreaChart data={mockImpactStats.monthlyGrowth}>
@@ -135,8 +137,8 @@ const ImpactDashboard = () => {
             {/* Skills Radar-like Bar Chart */}
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                 <h3 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Skill Distribution</h3>
-                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>TOP CATEGORIES</div>
+                 <h3 style={{ fontSize: '1.25rem', fontWeight: 800 }}>{t('skillDistribution')}</h3>
+                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t('topCategories')}</div>
               </div>
               <ResponsiveContainer width="100%" height={350}>
                 <BarChart data={mockImpactStats.skillDistribution} layout="vertical" margin={{ left: 30 }}>
@@ -165,7 +167,7 @@ const ImpactDashboard = () => {
               </ResponsiveContainer>
               <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
                 <div style={{ fontSize: '2rem', fontWeight: 900 }}>100%</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 800 }}>DIVERSIFIED</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 800 }}>{t('diversified')}</div>
               </div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
@@ -176,7 +178,7 @@ const ImpactDashboard = () => {
                     <span style={{ fontSize: '1rem', fontWeight: 800 }}>{s.skill}</span>
                   </div>
                   <div style={{ fontSize: '1.5rem', fontWeight: 900, color: 'white', marginBottom: '0.25rem' }}>{s.count}</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Qualified Volunteers</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t('qualifiedVolunteers')}</div>
                 </div>
               ))}
             </div>
@@ -187,16 +189,16 @@ const ImpactDashboard = () => {
         {activeTab === 'growth' && (
            <div style={{ textAlign: 'center', padding: '5rem' }}>
              <Zap size={48} style={{ color: 'var(--gold-mid)', marginBottom: '1.5rem' }} />
-             <h3 style={{ fontSize: '1.5rem', fontWeight: 800 }}>Growth Insight Active</h3>
-             <p style={{ color: 'var(--text-muted)' }}>The network is expanding at a rate of 12.5% YoY.</p>
+             <h3 style={{ fontSize: '1.5rem', fontWeight: 800 }}>{t('growthInsightActive')}</h3>
+             <p style={{ color: 'var(--text-muted)' }}>{t('growthInsightDesc')}</p>
            </div>
         )}
         
         {activeTab === 'hours' && (
            <div style={{ textAlign: 'center', padding: '5rem' }}>
              <Clock size={48} style={{ color: '#3b82f6', marginBottom: '1.5rem' }} />
-             <h3 style={{ fontSize: '1.5rem', fontWeight: 800 }}>Time Contribution Matrix</h3>
-             <p style={{ color: 'var(--text-muted)' }}>18,540 hours of collective impact recorded.</p>
+             <h3 style={{ fontSize: '1.5rem', fontWeight: 800 }}>{t('timeContributionMatrix')}</h3>
+             <p style={{ color: 'var(--text-muted)' }}>{t('timeContributionDesc')}</p>
            </div>
         )}
       </div>

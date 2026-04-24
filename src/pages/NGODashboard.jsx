@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { User, Mail, Phone, MapPin, Calendar, ShieldCheck, CheckCircle2, XCircle, Clock, Zap, Search } from 'lucide-react';
@@ -17,8 +18,8 @@ const MatchIndicator = ({ percent }) => {
         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 800 }}>{percent}</div>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <span style={{ fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em' }}>Match</span>
-        <span style={{ fontSize: '0.85rem', fontWeight: 700, color }}>{percent >= 80 ? 'Exceptional' : percent >= 40 ? 'Qualified' : 'Low Match'}</span>
+        <span style={{ fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em' }}>{window.__echoraT?.('matchLabel') || 'Match'}</span>
+        <span style={{ fontSize: '0.85rem', fontWeight: 700, color }}>{percent >= 80 ? (window.__echoraT?.('exceptionalLabel') || 'Exceptional') : percent >= 40 ? (window.__echoraT?.('qualifiedLabel') || 'Qualified') : (window.__echoraT?.('lowMatchLabel') || 'Low Match')}</span>
       </div>
     </div>
   );
@@ -26,17 +27,24 @@ const MatchIndicator = ({ percent }) => {
 
 const NGODashboard = () => {
   const { user, profile } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
+  // Expose t globally for MatchIndicator sub-component
+  window.__echoraT = t;
   const [applications, setApplications] = useState([]);
   const [myTasks, setMyTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterTaskId, setFilterTaskId] = useState('all');
   const [search, setSearch] = useState('');
+  const [autoSelectionEnabled, setAutoSelectionEnabled] = useState(false);
+  const [autoSelectionThreshold, setAutoSelectionThreshold] = useState(70);
+  const [isRunningAutoSelection, setIsRunningAutoSelection] = useState(false);
 
   useEffect(() => {
     if (!user) return;
     fetchAll();
+    fetchAutoSelectionSettings();
 
     // Realtime: new application comes in
     const channel = supabase
@@ -78,19 +86,214 @@ const NGODashboard = () => {
     }
   }
 
+  async function fetchAutoSelectionSettings() {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('auto_selection_enabled, auto_selection_threshold')
+        .eq('id', user.id)
+        .single();
+
+      if (error) throw error;
+      if (data) {
+        setAutoSelectionEnabled(data.auto_selection_enabled || false);
+        setAutoSelectionThreshold(data.auto_selection_threshold || 70);
+      }
+    } catch (err) {
+      console.error('Failed to fetch auto-selection settings:', err);
+    }
+  }
+
+  const handleAutoSelectionToggle = async () => {
+    const newValue = !autoSelectionEnabled;
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ auto_selection_enabled: newValue })
+        .eq('id', user.id);
+
+      if (error) throw error;
+      setAutoSelectionEnabled(newValue);
+      toast.success(`Auto-selection ${newValue ? 'enabled' : 'disabled'}`);
+    } catch (err) {
+      toast.error('Failed to update auto-selection');
+    }
+  };
+
+  const handleThresholdChange = async (newThreshold) => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ auto_selection_threshold: newThreshold })
+        .eq('id', user.id);
+
+      if (error) throw error;
+      setAutoSelectionThreshold(newThreshold);
+    } catch (err) {
+      toast.error('Failed to update threshold');
+    }
+  };
+
+  const runAutoSelection = async (taskId) => {
+    if (!user) return;
+    
+    setIsRunningAutoSelection(true);
+    const toastId = toast.loading('Running auto-selection...');
+    
+    try {
+      // Call the auto-selection function
+      const { data, error } = await supabase.rpc('auto_select_applications', {
+        task_id_param: taskId,
+        ngo_id_param: user.id
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast.success('Auto-selection completed successfully! 🎉', { id: toastId });
+      
+      // Refresh the applications list
+      fetchAll();
+      
+    } catch (err) {
+      console.error('Auto-selection error:', err);
+      toast.error('Failed to run auto-selection. Please try again.', { id: toastId });
+    } finally {
+      setIsRunningAutoSelection(false);
+    }
+  };
+
+  const runAutoSelectionForAllTasks = async () => {
+    if (!user) return;
+    
+    setIsRunningAutoSelection(true);
+    const toastId = toast.loading('Running auto-selection for all tasks...');
+    
+    try {
+      // Get all tasks for this NGO
+      const { data: tasks, error: tasksError } = await supabase
+        .from('ngo_tasks')
+        .select('id')
+        .eq('ngo_id', user.id);
+
+      if (tasksError) throw tasksError;
+
+      // Run auto-selection for each task
+      for (const task of tasks) {
+        const { error } = await supabase.rpc('auto_select_applications', {
+          task_id_param: task.id,
+          ngo_id_param: user.id
+        });
+
+        if (error) {
+          console.error(`Error in task ${task.id}:`, error);
+        }
+      }
+
+      toast.success(`Auto-selection completed for ${tasks.length} tasks! 🎉`, { id: toastId });
+      
+      // Refresh the applications list
+      fetchAll();
+      
+    } catch (err) {
+      console.error('Auto-selection error:', err);
+      toast.error('Failed to run auto-selection. Please try again.', { id: toastId });
+    } finally {
+      setIsRunningAutoSelection(false);
+    }
+  };
+
+  const handleAutoSelect = async (taskId) => {
+    const t = toast.loading('Running auto-selection...');
+    try {
+      console.log('Starting auto-selection for task:', taskId, 'NGO:', user.id);
+      
+      const { data, error } = await supabase.rpc('auto_select_applications', {
+        task_id_param: taskId,
+        ngo_id_param: user.id
+      });
+
+      console.log('Auto-selection RPC result:', { data, error });
+
+      if (error) {
+        console.error('Auto-selection RPC error:', error);
+        throw error;
+      }
+      
+      console.log('Auto-selection completed successfully');
+      toast.success('Auto-selection completed! 🤖', { id: t });
+      fetchAll(); // Refresh applications
+    } catch (err) {
+      console.error('Auto-selection failed:', err);
+      toast.error(`Auto-selection failed: ${err.message}`, { id: t });
+    }
+  };
+
   const handleUpdateStatus = async (id, status) => {
     const t = toast.loading('Updating...');
     try {
-      const { error } = await supabase
+      console.log('Updating application:', id, 'to status:', status);
+      console.log('Current user:', user?.id, 'Role:', profile?.role);
+      
+      // Get application details before updating
+      const { data: appData, error: fetchError } = await supabase
+        .from('ngo_applications')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (fetchError) throw fetchError;
+      
+      // Update the application status
+      const { data, error } = await supabase
         .from('ngo_applications')
         .update({ status })
-        .eq('id', id);
+        .eq('id', id)
+        .select();
 
-      if (error) throw error;
+      console.log('Update result:', { data, error });
+
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+      
+      // Send notification to volunteer if approved
+      if (status === 'approved' && appData.volunteer_id) {
+        console.log('Creating notification for volunteer:', appData.volunteer_id);
+        
+        const notificationData = {
+          user_id: appData.volunteer_id,
+          type: 'application_approved',
+          title: 'Application Approved by NGO! 🎉',
+          message: `Congratulations! Your application for "${appData.task_title}" has been APPROVED by ${appData.ngo_name || 'the NGO'}. The NGO has reviewed and selected you for this opportunity. Please check your email for further details about next steps and contact information.`,
+          related_id: appData.id
+        };
+        
+        console.log('Notification data:', notificationData);
+        
+        const { data: notifData, error: notifError } = await supabase
+          .from('notifications')
+          .insert(notificationData)
+          .select();
+          
+        console.log('Notification insert result:', { data: notifData, error: notifError });
+          
+        if (notifError) {
+          console.error('Notification error:', notifError);
+          toast.error(`Notification failed: ${notifError.message}`);
+        } else {
+          console.log('Notification sent successfully!');
+          toast.success('Notification sent to volunteer! 📧');
+        }
+      }
+      
       toast.success(`Application ${status}`, { id: t });
       setApplications(apps => apps.map(a => a.id === id ? { ...a, status } : a));
     } catch (err) {
-      toast.error('Update failed', { id: t });
+      console.error('Update failed error:', err);
+      toast.error(`Update failed: ${err.message}`, { id: t });
     }
   };
 
@@ -100,12 +303,15 @@ const NGODashboard = () => {
     toast.success(active ? 'Post paused' : 'Post activated');
   };
 
-  const filtered = applications.filter(a => {
+ const filtered = applications
+  .filter(a => {
     if (filterStatus !== 'all' && a.status !== filterStatus) return false;
     if (filterTaskId !== 'all' && a.task_id !== filterTaskId) return false;
     if (search && !a.volunteer_name?.toLowerCase().includes(search.toLowerCase()) && !a.task_title?.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
-  });
+  })
+  .sort((a, b) => b.match_score - a.match_score);
+  
 
   if (profile?.role !== 'ngo' && profile?.role !== 'admin') {
     return (
@@ -114,11 +320,11 @@ const NGODashboard = () => {
           <div style={{ width: 80, height: 80, borderRadius: '24px', background: 'rgba(239,68,68,0.1)', color: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 2rem' }}>
             <Zap size={40} />
           </div>
-          <h2 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '0.75rem' }}>NGO Portal Only</h2>
+          <h2 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '0.75rem' }}>{t('ngoPotalOnly')}</h2>
           <p style={{ color: 'var(--text-muted)', maxWidth: '400px', margin: '0 auto 2rem' }}>
-            This dashboard is only for NGO accounts. Your account is set to <strong>{profile?.role || 'volunteer'}</strong>.
+            {t('ngoDashboardAccessDesc')} <strong>{profile?.role || 'volunteer'}</strong>.
           </p>
-          <button onClick={() => navigate('/tasks')} className="btn btn-primary">Go to Task Board</button>
+          <button onClick={() => navigate('/tasks')} className="btn btn-primary">{t('goToTaskBoard')}</button>
         </div>
       </div>
     );
@@ -129,35 +335,136 @@ const NGODashboard = () => {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h1 className="page-title" style={{ fontSize: '2rem', fontWeight: 800 }}>NGO Dashboard</h1>
-          <p className="page-subtitle">Your posted opportunities & incoming applications</p>
+          <h1 className="page-title" style={{ fontSize: '2rem', fontWeight: 800 }}>{t('ngoDashboard')}</h1>
+          <p className="page-subtitle">{t('postedOpportunities')}</p>
         </div>
         <button onClick={() => navigate('/ngo-form')} className="btn btn-primary">
-          + Post New Opportunity
+          {t('postNewOpportunity')}
         </button>
+      </div>
+
+      {/* Auto-Selection Controls */}
+      <div style={{ 
+        background: 'var(--bg-secondary)', 
+        border: '1px solid var(--border-color)', 
+        borderRadius: '16px', 
+        padding: '1.5rem', 
+        marginBottom: '2rem' 
+      }}>
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          marginBottom: '1rem',
+          flexWrap: 'wrap',
+          gap: '1rem'
+        }}>
+          <div>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
+              {t('autoSelectionMode')}
+            </h3>
+            <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+              {t('autoApproveRejectDesc')}
+            </p>
+          </div>
+          <button
+            onClick={handleAutoSelectionToggle}
+            style={{
+              background: autoSelectionEnabled ? 'var(--gold-grad)' : 'transparent',
+              color: autoSelectionEnabled ? '#1a0e05' : 'var(--text-secondary)',
+              border: '1px solid',
+              borderColor: autoSelectionEnabled ? 'var(--gold-mid)' : 'var(--border-color)',
+              borderRadius: '20px',
+              padding: '0.5rem 1.5rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}
+          >
+            <div style={{
+              width: '12px',
+              height: '12px',
+              borderRadius: '50%',
+              background: autoSelectionEnabled ? '#22c55e' : '#ef4444',
+              transition: 'all 0.2s'
+            }} />
+            {autoSelectionEnabled ? t('enabledLabel') : t('disabledLabel')}
+          </button>
+        </div>
+
+        {autoSelectionEnabled && (
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '1rem',
+            padding: '1rem',
+            background: 'rgba(201,168,76,0.05)',
+            borderRadius: '12px',
+            border: '1px solid rgba(201,168,76,0.2)'
+          }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
+                {t('compatibilityThreshold')}: {autoSelectionThreshold}%
+              </label>
+              <input
+                type="range"
+                min="50"
+                max="90"
+                value={autoSelectionThreshold}
+                onChange={(e) => handleThresholdChange(parseInt(e.target.value))}
+                style={{ width: '100%' }}
+              />
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                <span>{t('moreInclusive')}</span>
+                <span>{t('verySelective')}</span>
+              </div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              {myTasks.filter(task => {
+                return applications.some(app => app.task_id === task.id.toString() && app.status === 'pending');
+              }).map(task => (
+                <button
+                  key={task.id}
+                  onClick={() => handleAutoSelect(task.id)}
+                  className="btn btn-primary"
+                  style={{ 
+                    padding: '0.5rem 1rem', 
+                    fontSize: '0.85rem',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  Auto-Select "{task.title}"
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* My Posts summary */}
       {myTasks.length > 0 && (
         <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 16, padding: '1rem 1.25rem', marginBottom: '2rem' }}>
-          <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.75rem' }}>Your Posts</div>
+          <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.75rem' }}>{t('yourPosts')}</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-            {myTasks.map(t => (
-              <div key={t.id} style={{
+            {myTasks.map(task => (
+              <div key={task.id} style={{
                 display: 'flex', alignItems: 'center', gap: '0.5rem',
                 background: 'var(--bg-card)', border: '1px solid var(--border-color)',
                 borderRadius: 10, padding: '0.4rem 0.75rem', fontSize: '0.82rem',
               }}>
-                <span style={{ fontWeight: 600 }}>{t.title}</span>
+                <span style={{ fontWeight: 600 }}>{task.title}</span>
                 <span style={{ opacity: 0.5 }}>·</span>
-                <span style={{ fontSize: 11, color: t.active ? '#22c55e' : '#ef4444', fontWeight: 700 }}>
-                  {t.active ? 'Live' : 'Paused'}
+                <span style={{ fontSize: 11, color: task.active ? '#22c55e' : '#ef4444', fontWeight: 700 }}>
+                  {task.active ? t('liveLabel') : t('pausedLabel')}
                 </span>
                 <button
-                  onClick={() => handleToggleTask(t.id, t.active)}
+                  onClick={() => handleToggleTask(task.id, task.active)}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 11, fontWeight: 600 }}
                 >
-                  {t.active ? 'Pause' : 'Activate'}
+                  {task.active ? t('pauseLabel') : t('activateLabel')}
                 </button>
               </div>
             ))}
@@ -168,10 +475,10 @@ const NGODashboard = () => {
       {/* Stats */}
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
         {[
-          { label: 'Total', val: applications.length, color: 'var(--gold-mid)' },
-          { label: 'Pending', val: applications.filter(a => a.status === 'pending').length, color: '#f59e0b' },
-          { label: 'Approved', val: applications.filter(a => a.status === 'approved').length, color: '#22c55e' },
-          { label: 'Rejected', val: applications.filter(a => a.status === 'rejected').length, color: '#ef4444' },
+          { label: t('totalLabel'), val: applications.length, color: 'var(--gold-mid)' },
+          { label: t('pendingLabel'), val: applications.filter(a => a.status === 'pending').length, color: '#f59e0b' },
+          { label: t('approvedLabel'), val: applications.filter(a => a.status === 'approved').length, color: '#22c55e' },
+          { label: t('rejectedLabel'), val: applications.filter(a => a.status === 'rejected').length, color: '#ef4444' },
         ].map(s => (
           <div key={s.label} style={{ flex: 1, minWidth: 100, background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 14, padding: '0.75rem 1.25rem' }}>
             <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{s.label}</div>
@@ -184,16 +491,48 @@ const NGODashboard = () => {
       <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', background: 'var(--bg-secondary)', padding: '1rem', borderRadius: '16px', border: '1px solid var(--border-color)', flexWrap: 'wrap' }}>
         <div style={{ position: 'relative', flex: 1, minWidth: 220 }}>
           <Search size={16} style={{ position: 'absolute', left: '0.9rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-          <input className="form-input" placeholder="Search by name or task..." value={search} onChange={e => setSearch(e.target.value)} style={{ paddingLeft: '2.5rem', height: 40 }} />
+          <input className="form-input" placeholder={t('searchByNameTask')} value={search} onChange={e => setSearch(e.target.value)} style={{ paddingLeft: '2.5rem', height: 40 }} />
         </div>
 
         {/* Filter by task */}
         {myTasks.length > 1 && (
           <select className="form-select" style={{ height: 40 }} value={filterTaskId} onChange={e => setFilterTaskId(e.target.value)}>
-            <option value="all">All Posts</option>
+            <option value="all">{t('allPosts')}</option>
             {myTasks.map(t => <option key={t.id} value={String(t.id)}>{t.title}</option>)}
           </select>
         )}
+
+        {/* Auto-selection buttons */}
+        <button
+          onClick={runAutoSelectionForAllTasks}
+          disabled={isRunningAutoSelection}
+          style={{
+            height: 40,
+            padding: '0 1rem',
+            background: isRunningAutoSelection ? 'var(--bg-input)' : 'var(--primary-grad)',
+            color: 'white',
+            border: 'none',
+            borderRadius: 8,
+            fontWeight: 600,
+            cursor: isRunningAutoSelection ? 'not-allowed' : 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            fontSize: '0.85rem'
+          }}
+        >
+          {isRunningAutoSelection ? (
+            <>
+              <div style={{ width: 16, height: 16, border: '2px solid white', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+              {t('runningAutoSelectText')}
+            </>
+          ) : (
+            <>
+              <Zap size={16} />
+              {t('runAutoSelectAllTasks')}
+            </>
+          )}
+        </button>
 
         {/* Filter by status */}
         <div style={{ display: 'flex', gap: '0.4rem' }}>
@@ -214,19 +553,17 @@ const NGODashboard = () => {
       {loading ? (
         <div style={{ textAlign: 'center', padding: '5rem' }}>
           <div className="spinner" style={{ width: 48, height: 48, margin: '0 auto 1.5rem' }} />
-          <p style={{ color: 'var(--text-muted)' }}>Loading applications...</p>
+          <p style={{ color: 'var(--text-muted)' }}>{t('loadingApplications')}</p>
         </div>
       ) : filtered.length === 0 ? (
         <div className="card" style={{ padding: '5rem', textAlign: 'center', borderStyle: 'dashed' }}>
           <div style={{ fontSize: '3rem', marginBottom: '1rem', opacity: 0.5 }}>📂</div>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.5rem' }}>No applications yet</h3>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.5rem' }}>{t('noApplicationsYet')}</h3>
           <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
-            {myTasks.length === 0
-              ? 'Post a volunteer opportunity first so volunteers can apply.'
-              : 'Volunteers will appear here once they apply to your posts.'}
+            {myTasks.length === 0 ? t('postOpportunityFirst') : t('volunteersWillAppear')}
           </p>
           {myTasks.length === 0 && (
-            <button onClick={() => navigate('/ngo-form')} className="btn btn-primary">Post First Opportunity</button>
+            <button onClick={() => navigate('/ngo-form')} className="btn btn-primary">{t('postFirstOpportunity')}</button>
           )}
         </div>
       ) : (
@@ -263,7 +600,7 @@ const NGODashboard = () => {
                         )}
                       </div>
                       <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                        Applying for: <span style={{ color: 'var(--gold-mid)', fontWeight: 600 }}>{app.task_title}</span>
+                        {t('applyingFor')} <span style={{ color: 'var(--gold-mid)', fontWeight: 600 }}>{app.task_title}</span>
                       </div>
                     </div>
                     <MatchIndicator percent={app.match_score} />
@@ -294,15 +631,15 @@ const NGODashboard = () => {
                       {app.status === 'pending' ? (
                         <>
                           <button onClick={() => handleUpdateStatus(app.id, 'rejected')} className="btn btn-secondary" style={{ height: 40, padding: '0 1.25rem', borderRadius: 10, color: '#ef4444' }}>
-                            <XCircle size={16} style={{ marginRight: 4 }} /> Decline
+                            <XCircle size={16} style={{ marginRight: 4 }} /> {t('declineLabel')}
                           </button>
                           <button onClick={() => handleUpdateStatus(app.id, 'approved')} className="btn btn-primary" style={{ height: 40, padding: '0 1.5rem', borderRadius: 10 }}>
-                            <CheckCircle2 size={16} style={{ marginRight: 4 }} /> Approve
+                            <CheckCircle2 size={16} style={{ marginRight: 4 }} /> {t('approveLabel')}
                           </button>
                         </>
                       ) : (
                         <button onClick={() => handleUpdateStatus(app.id, 'pending')} className="btn btn-secondary" style={{ height: 40, borderRadius: 10 }}>
-                          Reset to Pending
+                          {t('resetToPending')}
                         </button>
                       )}
                     </div>

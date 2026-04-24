@@ -207,6 +207,11 @@ create policy "NGOs can view applications"
   on public.ngo_applications for select
   using (auth.uid() = ngo_id);
 
+-- NGOs can update application status for their tasks
+create policy "NGOs can update application status"
+  on public.ngo_applications for update
+  using (auth.uid() = ngo_id);
+
 -- ── 8. NGO TASKS TABLE ──────────────────────────────────────────────────
 -- Tasks posted by NGOs for volunteers to apply to.
 

@@ -79,15 +79,17 @@ const VolunteerSignup = () => {
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
-            <div style={{
-              width: 48, height: 48, borderRadius: '12px',
-              background: 'var(--gold-grad)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '1.5rem', boxShadow: 'var(--shadow-gold)',
-            }}>⚡</div>
+            <img 
+              src="/echora-logo.svg" 
+              alt="ECHORA Logo"
+              style={{
+                width: 48, height: 48,
+                boxShadow: 'var(--shadow-gold)',
+              }}
+            />
             <div>
               <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', fontWeight: 800, color: 'var(--gold-light)', letterSpacing: '-0.01em' }}>ECHORA</div>
-              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', letterSpacing: '0.1em' }}>Volunteer Network</div>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', letterSpacing: '0.1em' }}>EMPATHY IN EVERY ECHO</div>
             </div>
           </div>
           <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '0.35rem', fontFamily: 'var(--font-display)' }}>Join the Movement</h1>

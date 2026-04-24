@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Home, ClipboardList, Building, Map, Calendar, TrendingUp, Trophy, PlusCircle, User, LogOut, Menu, X, Zap, Globe } from 'lucide-react';
+import Notifications from './Notifications';
 
 const Sidebar = ({ onClose }) => {
   const { profile, signOut } = useAuth();
@@ -16,8 +17,8 @@ const Sidebar = ({ onClose }) => {
     
     // NGO & Admin Only Section
     ...(profile?.role === 'ngo' || profile?.role === 'admin' ? [
-      { to: '/ngo-dashboard', icon: Zap, label: 'Manage Applications' },
-      { to: '/ngo-form', icon: PlusCircle, label: 'Post Opportunity' },
+      { to: '/ngo-dashboard', icon: Zap, label: t('manageApplicationsNav') },
+      { to: '/ngo-form', icon: PlusCircle, label: t('postOpportunityNav') },
     ] : []),
 
     { to: '/meetups', icon: Calendar, label: t('navMeetups') },
@@ -44,15 +45,16 @@ const Sidebar = ({ onClose }) => {
       {/* Logo */}
       <div style={{ padding: '2rem 1.5rem 1.5rem', borderBottom: '1px solid var(--border-color)', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div style={{
-            width: 42, height: 42, borderRadius: '12px',
-            background: 'var(--primary-grad)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: 'var(--shadow-primary)', flexShrink: 0,
-            color: 'white',
-          }}>
-            <Zap size={20} strokeWidth={2.5} />
-          </div>
+          <img 
+            src="/echora-logo.svg" 
+            alt="ECHORA"
+            style={{
+              width: 42, height: 42,
+              borderRadius: '12px',
+              boxShadow: 'var(--shadow-primary)', 
+              flexShrink: 0,
+            }}
+          />
           <div>
             <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.25rem', color: 'var(--primary-light)', letterSpacing: '-0.01em' }}>ECHORA</div>
             <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>{t('appTagline')}</div>
@@ -81,6 +83,10 @@ const Sidebar = ({ onClose }) => {
                 {' · '}{profile.experience || 'Beginner'}
               </div>
             </div>
+            {/* Notifications Bell for Volunteers */}
+            {(profile?.role === 'volunteer' || !profile?.role) && (
+              <Notifications />
+            )}
           </div>
           {/* Points progress */}
           <div style={{ marginTop: '1rem' }}>
