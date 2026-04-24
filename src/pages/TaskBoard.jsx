@@ -42,7 +42,6 @@ export function calculateMatchScore(volunteer, task) {
 
 const TaskBoard = () => {
   const { user } = useAuth();
-  const [filterUrgency, setFilterUrgency] = useState('');
   const [filterState, setFilterState] = useState('');
   const [filterSkill, setFilterSkill] = useState('');
   const [search, setSearch] = useState('');
@@ -84,7 +83,6 @@ const TaskBoard = () => {
 
   // ── Filter tasks ────────────────────────────────────────────────────────────
   const filtered = mockNGORequests.filter(t => {
-    const matchUrgency = !filterUrgency || t.urgency === filterUrgency;
     const matchState = !filterState || t.state === filterState;
     const matchSkill = !filterSkill || t.requiredSkills?.includes(filterSkill);
     const matchSearch = !search ||
@@ -93,16 +91,12 @@ const TaskBoard = () => {
       t.location.toLowerCase().includes(search.toLowerCase());
     const matchMySkills = !showMySkillsOnly ||
       (mySkills.length > 0 && t.requiredSkills?.some(s => mySkills.includes(s)));
-    return matchUrgency && matchState && matchSkill && matchSearch && matchMySkills;
+    return matchState && matchSkill && matchSearch && matchMySkills;
   });
 
   // ── Sort tasks ──────────────────────────────────────────────────────────────
   const sorted = [...filtered].sort((a, b) => {
     if (sortBy === 'newest') return new Date(b.createdAt) - new Date(a.createdAt);
-    if (sortBy === 'urgent') {
-      const urgencyMap = { 'High': 0, 'Medium': 1, 'Low': 2 };
-      return urgencyMap[a.urgency] - urgencyMap[b.urgency];
-    }
     if (sortBy === 'match' && volunteerProfile) {
       return calculateMatchScore(volunteerProfile, b) - calculateMatchScore(volunteerProfile, a);
     }
@@ -222,12 +216,6 @@ const TaskBoard = () => {
             style={{ paddingLeft: '2.4rem', fontSize: '0.82rem' }}
           />
         </div>
-        <select className="form-select" value={filterUrgency} onChange={e => setFilterUrgency(e.target.value)} style={{ maxWidth: 140, fontSize: '0.82rem' }}>
-          <option value="">All Urgencies</option>
-          <option value="High">🔴 High</option>
-          <option value="Medium">🟡 Medium</option>
-          <option value="Low">🟢 Low</option>
-        </select>
         <select className="form-select" value={filterState} onChange={e => setFilterState(e.target.value)} style={{ maxWidth: 140, fontSize: '0.82rem' }}>
           <option value="">All States</option>
           {INDIA_STATES.map(s => <option key={s} value={s}>{s}</option>)}
@@ -239,7 +227,6 @@ const TaskBoard = () => {
         <select className="form-select" value={sortBy} onChange={e => setSortBy(e.target.value)} style={{ maxWidth: 140, fontSize: '0.82rem' }}>
           <option value="match">Best Match ⭐</option>
           <option value="newest">Newest</option>
-          <option value="urgent">Most Urgent</option>
         </select>
         <span className="badge badge-gray">{sorted.length} tasks</span>
       </div>
@@ -273,7 +260,6 @@ const TaskBoard = () => {
                       {/* Title + urgency + match % */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
                         <h3 style={{ fontSize: '1.05rem', fontWeight: 700, fontFamily: 'var(--font-display)' }}>{task.ngoName}</h3>
-                        <UrgencyBadge urgency={task.urgency} />
                         {matchPct > 0 && (
                           <span className="badge" style={{
                             background: matchPct === 100 ? 'rgba(99,102,241,0.2)' : 'rgba(245,158,11,0.2)',
@@ -308,7 +294,7 @@ const TaskBoard = () => {
                         <div style={{ marginTop: '1rem', padding: '1rem 0', borderTop: '1px solid var(--border-color)' }}>
                           <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.8 }}>
                             <strong style={{ color: 'var(--text-primary)' }}>About this opportunity:</strong><br />
-                            This is a {task.urgency.toLowerCase()} urgency task at {task.ngoName}. You'll be working on meaningful community impact.
+                            You'll be working on meaningful community impact.
                             <br /><br />
                             <strong style={{ color: 'var(--text-primary)' }}>Required Skills:</strong> {task.requiredSkills?.join(', ')}<br />
                             {matchedSkills.length > 0 && (
