@@ -80,32 +80,43 @@ export const AuthProvider = ({ children }) => {
   const [role, setRole] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = async (userId) => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching profile:', error);
+  const fetchProfile = async (uid) => {
+    const { data, error } = await supabase.from('profiles').select('*').eq('id', uid).single();
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // Profile row doesn't exist - try to create it from auth metadata (Self-healing)
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        if (authUser) {
+          const { data: newProfile, error: createError } = await supabase.from('profiles').insert({
+            id: authUser.id,
+            email: authUser.email,
+            name: authUser.user_metadata?.name || '',
+            role: authUser.user_metadata?.role || 'volunteer'
+          }).select().single();
+          
+          if (!createError && newProfile) {
+            const mapped = {
+              ...newProfile,
+              name: newProfile.name || '',
+              tasksCompleted: newProfile.tasks_completed || 0,
+            };
+            setProfile(mapped);
+            setRole(mapped.role);
+            setLoading(false);
+            return;
+          }
+        }
       }
-
-      if (data) {
-        // Map snake_case DB columns to camelCase used in app
+      console.error('fetchProfile error:', error);
+    } else if (data) {
         const mapped = {
           ...data,
           tasksCompleted: data.tasks_completed ?? 0,
         };
         setProfile(mapped);
         setRole(mapped.role || 'volunteer');
-      }
-    } catch (err) {
-      console.error('fetchProfile error:', err);
-    } finally {
-      setLoading(false);
     }
+    setLoading(false);
   };
 
   useEffect(() => {
