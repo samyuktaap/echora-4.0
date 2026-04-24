@@ -40,6 +40,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
       <Route path="/signup" element={<PublicRoute><VolunteerSignup /></PublicRoute>} />
+      <Route path="/volunteer-onboarding" element={<ProtectedRoute><VolunteerOnboarding /></ProtectedRoute>} />
       <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
@@ -51,7 +52,6 @@ function AppRoutes() {
         <Route path="meetups" element={<Meetups />} />
         <Route path="ngo-form" element={<NGOForm />} />
         <Route path="ngo-requests" element={<NGORequests />} />
-        <Route path="volunteer-onboarding" element={<VolunteerOnboarding />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
