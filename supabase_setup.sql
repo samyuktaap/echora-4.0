@@ -212,12 +212,17 @@ create table if not exists public.ngo_tasks (
   required_skills text[] default '{}',
   min_experience  text default 'Beginner',
   availability    text default 'Flexible',
-  urgency         text default 'medium',
+  urgency         text default 'medium' check (urgency in ('high', 'medium', 'low', 'urgent')),
   spots           integer default 1,
   deadline        text,
   active          boolean default true,
   created_at      timestamptz default now()
 );
+
+-- Fix for existing constraint mismatch
+alter table public.ngo_tasks drop constraint if exists ngo_tasks_urgency_check;
+alter table public.ngo_tasks add constraint ngo_tasks_urgency_check 
+  check (urgency in ('high', 'medium', 'low', 'urgent'));
 
 alter table public.ngo_tasks enable row level security;
 
