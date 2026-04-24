@@ -31,6 +31,17 @@ const ImpactDashboard = () => {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('overview');
 
+  // Translate graph data arrays dynamically
+  const translatedMonthlyGrowth = mockImpactStats.monthlyGrowth.map(item => ({
+    ...item,
+    month: t(item.month)
+  }));
+
+  const translatedSkillDistribution = mockImpactStats.skillDistribution.map(item => ({
+    ...item,
+    skill: t(item.skill)
+  }));
+
   const statCards = [
     { icon: <Users size={24} />, label: t('activeVolunteers'), value: mockImpactStats.totalVolunteers.toLocaleString(), color: '#3b82f6', trend: '+12% this month' },
     { icon: <CheckCircle2 size={24} />, label: t('tasksDelivered'), value: mockImpactStats.tasksCompleted.toLocaleString(), color: '#22c55e', trend: '+24% this month' },
@@ -112,7 +123,7 @@ const ImpactDashboard = () => {
                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t('latest6Months')}</div>
               </div>
               <ResponsiveContainer width="100%" height={350}>
-                <AreaChart data={mockImpactStats.monthlyGrowth}>
+                <AreaChart data={translatedMonthlyGrowth}>
                   <defs>
                     <linearGradient id="colorVol" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
@@ -128,8 +139,8 @@ const ImpactDashboard = () => {
                   <YAxis stroke="rgba(255,255,255,0.3)" style={{ fontSize: '0.8rem', fontWeight: 600 }} tickLine={false} axisLine={false} />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend iconType="circle" />
-                  <Area type="monotone" dataKey="volunteers" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorVol)" name="Volunteers" />
-                  <Area type="monotone" dataKey="tasks" stroke="#22c55e" strokeWidth={3} fillOpacity={1} fill="url(#colorTask)" name="Tasks" />
+                  <Area type="monotone" dataKey="volunteers" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorVol)" name={t('volunteers')} />
+                  <Area type="monotone" dataKey="tasks" stroke="#22c55e" strokeWidth={3} fillOpacity={1} fill="url(#colorTask)" name={t('tasks')} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -141,7 +152,7 @@ const ImpactDashboard = () => {
                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t('topCategories')}</div>
               </div>
               <ResponsiveContainer width="100%" height={350}>
-                <BarChart data={mockImpactStats.skillDistribution} layout="vertical" margin={{ left: 30 }}>
+                <BarChart data={translatedSkillDistribution} layout="vertical" margin={{ left: 30 }}>
                   <XAxis type="number" hide />
                   <YAxis dataKey="skill" type="category" stroke="white" style={{ fontSize: '0.85rem', fontWeight: 700 }} tickLine={false} axisLine={false} width={120} />
                   <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
@@ -157,8 +168,8 @@ const ImpactDashboard = () => {
             <div style={{ position: 'relative' }}>
               <ResponsiveContainer width="100%" height={400}>
                 <PieChart>
-                  <Pie data={mockImpactStats.skillDistribution} cx="50%" cy="50%" innerRadius={80} outerRadius={140} paddingAngle={5} dataKey="count">
-                    {mockImpactStats.skillDistribution.map((entry, index) => (
+                  <Pie data={translatedSkillDistribution} cx="50%" cy="50%" innerRadius={80} outerRadius={140} paddingAngle={5} dataKey="count">
+                    {translatedSkillDistribution.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
@@ -171,7 +182,7 @@ const ImpactDashboard = () => {
               </div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-              {mockImpactStats.skillDistribution.map((s, i) => (
+              {translatedSkillDistribution.map((s, i) => (
                 <div key={s.skill} style={{ padding: '1.5rem', background: 'rgba(255,255,255,0.03)', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
                     <div style={{ width: 12, height: 12, borderRadius: '50%', background: COLORS[i % COLORS.length] }} />

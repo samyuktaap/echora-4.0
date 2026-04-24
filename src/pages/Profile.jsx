@@ -200,7 +200,7 @@ const Profile = () => {
                     <div style={{ marginBottom: '0.75rem' }}>
                       <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.4rem', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>{t('skillsLabel')}</div>
                       <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
-                        {profile.skills.map(s => <span key={s} className="badge badge-primary">{s}</span>)}
+                        {profile.skills.map(s => <span key={s} className="badge badge-primary">{t(s)}</span>)}
                       </div>
                     </div>
                   )}
@@ -208,7 +208,7 @@ const Profile = () => {
                     <div>
                       <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.4rem', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>{t('languagesLabel')}</div>
                       <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
-                        {profile.languages.map(l => <span key={l} className="badge badge-gray">🌐 {l}</span>)}
+                        {profile.languages.map(l => <span key={l} className="badge badge-gray">🌐 {t(l)}</span>)}
                       </div>
                     </div>
                   )}
@@ -229,13 +229,13 @@ const Profile = () => {
             {(profile?.badges?.length > 0 ? profile.badges : ['Newcomer']).map(badge => (
               <div key={badge} style={{ textAlign: 'center', padding: '1.25rem 1rem', background: 'rgba(201,168,76,0.07)', borderRadius: '14px', border: '1px solid rgba(201,168,76,0.2)', minWidth: 90 }}>
                 <div style={{ fontSize: '2rem', marginBottom: '0.4rem' }}>{BADGE_ICONS[badge] || '🏅'}</div>
-                <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--gold-mid)' }}>{badge}</div>
+                <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--gold-mid)' }}>{t(badge)}</div>
               </div>
             ))}
             {['Gold Star', 'Century Club', 'State Hero', 'Legend'].map(badge => (
               <div key={badge} style={{ textAlign: 'center', padding: '1.25rem 1rem', background: 'var(--bg-input)', borderRadius: '14px', border: '1px dashed var(--border-color)', minWidth: 90, opacity: 0.45 }}>
                 <div style={{ fontSize: '2rem', marginBottom: '0.4rem', filter: 'grayscale(1)' }}>🔒</div>
-                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{badge}</div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{t(badge)}</div>
               </div>
             ))}
           </div>
@@ -279,10 +279,10 @@ const Profile = () => {
           ) : notes.map(note => (
             <div key={note.id} style={{ padding: '1.25rem', background: 'var(--bg-secondary)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{note.task}</span>
+                <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{t(note.task)}</span>
                 <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{note.date}</span>
               </div>
-              <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', lineHeight: 1.6 }}>{note.note}</p>
+              <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', lineHeight: 1.6 }}>{t(note.note)}</p>
               <StarRating value={note.rating} />
             </div>
           ))}

@@ -336,10 +336,10 @@ const TaskBoard = () => {
                          </div>
                          <div>
                             <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.2rem' }}>
-                              {task.ngo_name}
+                              {t(task.ngo_name)}
                             </div>
                             <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'white', margin: 0 }}>
-                              {task.title}
+                              {t(task.title)}
                             </h2>
                          </div>
                       </div>
@@ -347,15 +347,15 @@ const TaskBoard = () => {
                     </div>
 
                     <p style={{ fontSize: '0.95rem', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '1.5rem' }}>
-                      {task.description}
+                      {t(task.description)}
                     </p>
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem', marginBottom: '1.5rem', padding: '1rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                         <MapPin size={14} /> {task.location}
+                         <MapPin size={14} /> {t(task.location)}
                        </div>
                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                         <Clock size={14} /> {task.availability}
+                         <Clock size={14} /> {t(task.availability)}
                        </div>
                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                          <Users size={14} /> {task.spots} spots

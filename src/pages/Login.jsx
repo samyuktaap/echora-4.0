@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 import toast from 'react-hot-toast';
 
 const Login = () => {
@@ -140,10 +141,13 @@ const Login = () => {
 
       {/* RIGHT: Auth Form */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem', position: 'relative', background: 'var(--bg-secondary)' }}>
-        {/* Theme toggle */}
-        <button onClick={toggleTheme} style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', width: 40, height: 40, borderRadius: '10px', background: 'var(--bg-input)', border: '1px solid var(--border-color)', cursor: 'pointer', fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          {isDark ? '☀️' : '🌙'}
-        </button>
+        {/* Top Controls: Language & Theme */}
+        <div style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+          <LanguageSwitcher />
+          <button onClick={toggleTheme} style={{ width: 40, height: 40, borderRadius: '10px', background: 'var(--bg-input)', border: '1px solid var(--border-color)', cursor: 'pointer', fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {isDark ? '☀️' : '🌙'}
+          </button>
+        </div>
 
         <div style={{ width: '100%', maxWidth: 420 }}>
           {/* Header */}

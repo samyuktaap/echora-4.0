@@ -16,37 +16,51 @@ export const getAITranslation = (text, targetLang) => {
   
   const cacheKey = `${targetLang}:${text}`;
   
-  // 1. Check if we already have it in cache
+  // 1. Check memory cache
   if (translationCache[cacheKey]) {
     return translationCache[cacheKey];
   }
-  
-  // 2. If not, and we aren't already fetching it, start the AI translation request
+
+  // 1.5 Check persistent localStorage cache for instant zero-lag loading
+  try {
+    const saved = localStorage.getItem(`echora_ai_trans_${targetLang}`);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed[text]) {
+        translationCache[cacheKey] = parsed[text];
+        return parsed[text];
+      }
+    }
+  } catch(e) {}
+
+  // 2. Fetch from ultra-fast Google Translate AI model
   if (!pendingRequests.has(cacheKey)) {
     pendingRequests.add(cacheKey);
     
-    // We use MyMemory API as our free, accessible translation model
-    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|${targetLang}`;
+    // Use Google Translate's free backend API (no limits, <100ms response)
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
     
     fetch(url)
       .then(res => res.json())
       .then(data => {
-        if (data && data.responseData && data.responseData.translatedText) {
-          let translated = data.responseData.translatedText;
-          // MyMemory sometimes leaves a 'MYMEMORY WARNING', we ignore those
-          if (!translated.includes('MYMEMORY')) {
-            translationCache[cacheKey] = translated;
-            // Trigger React re-render so components instantly show the new translation
-            if (notifyUpdate) notifyUpdate(); 
-          }
+        if (data && data[0] && data[0][0] && data[0][0][0]) {
+          let translated = data[0][0][0];
+          translationCache[cacheKey] = translated;
+          
+          // Save to localStorage for zero-lag future reloads
+          try {
+            const saved = localStorage.getItem(`echora_ai_trans_${targetLang}`);
+            const parsed = saved ? JSON.parse(saved) : {};
+            parsed[text] = translated;
+            localStorage.setItem(`echora_ai_trans_${targetLang}`, JSON.stringify(parsed));
+          } catch(e) {}
+
+          // Trigger React re-render
+          if (notifyUpdate) notifyUpdate(); 
         }
       })
-      .catch(err => {
-        console.error('AI Translation model error:', err);
-      })
-      .finally(() => {
-        pendingRequests.delete(cacheKey);
-      });
+      .catch(err => console.error('AI Translation error:', err))
+      .finally(() => pendingRequests.delete(cacheKey));
   }
   
   // 3. Return the original English text synchronously while the AI model translates in the background.
