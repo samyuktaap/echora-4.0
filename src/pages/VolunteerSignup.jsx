@@ -38,10 +38,7 @@ const VolunteerSignup = () => {
         toast.error('Passwords do not match');
         return;
       }
-      if (form.password.length < 6) {
-        toast.error('Password must be at least 6 characters');
-        return;
-      }
+
       setStep(2);
     } else {
       setLoading(true);
@@ -117,7 +114,7 @@ const VolunteerSignup = () => {
                   <div className="form-group">
                     <label className="form-label">Password *</label>
                     <div style={{ position: 'relative' }}>
-                      <input className="form-input" type={showPass ? 'text' : 'password'} placeholder="Min. 6 characters" value={form.password} onChange={set('password')} style={{ paddingRight: '3rem' }} />
+                      <input className="form-input" type={showPass ? 'text' : 'password'} placeholder="Strong password required" value={form.password} onChange={set('password')} style={{ paddingRight: '3rem' }} />
                       <button type="button" onClick={() => setShowPass(p => !p)} style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: '1rem' }}>
                         {showPass ? '🙈' : '👁️'}
                       </button>

@@ -164,7 +164,13 @@ export const AuthProvider = ({ children }) => {
 
   const signUpWithEmail = async (email, password, name, userRole = 'volunteer') => {
     if (!email || !password || !name) return { success: false, error: 'All fields are required' };
-    if (password.length < 6) return { success: false, error: 'Password must be at least 6 characters' };
+    
+    // Strict Password Complexity Enforcement
+    if (password.length < 8) return { success: false, error: 'Security: Password must be at least 8 characters long.' };
+    if (!/[A-Z]/.test(password)) return { success: false, error: 'Security: Password must contain at least one uppercase letter.' };
+    if (!/[a-z]/.test(password)) return { success: false, error: 'Security: Password must contain at least one lowercase letter.' };
+    if (!/\d/.test(password)) return { success: false, error: 'Security: Password must contain at least one number.' };
+    if (!/[\W_]/.test(password)) return { success: false, error: 'Security: Password must contain at least one special character (e.g., !@#$%).' };
 
     const { data, error } = await supabase.auth.signUp({
       email,

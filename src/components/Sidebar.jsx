@@ -12,7 +12,12 @@ const Sidebar = ({ onClose }) => {
 
   const navItems = [
     { to: '/dashboard', icon: Home, label: t('navDashboard') },
-    { to: '/tasks', icon: ClipboardList, label: t('navTasks') },
+    
+    // Volunteer / Admin Only Section
+    ...(profile?.role !== 'ngo' ? [
+      { to: '/tasks', icon: ClipboardList, label: t('navTasks') },
+    ] : []),
+
     { to: '/map', icon: Map, label: t('navMap') },
     
     // NGO & Admin Only Section
@@ -83,10 +88,6 @@ const Sidebar = ({ onClose }) => {
                 {' · '}{profile.experience || 'Beginner'}
               </div>
             </div>
-            {/* Notifications Bell for Volunteers */}
-            {(profile?.role === 'volunteer' || !profile?.role) && (
-              <Notifications />
-            )}
           </div>
           {/* Points progress */}
           <div style={{ marginTop: '1rem' }}>

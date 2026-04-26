@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { User, Mail, Phone, MapPin, Calendar, ShieldCheck, CheckCircle2, XCircle, Clock, Zap, Search } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Calendar, ShieldCheck, CheckCircle2, XCircle, Clock, Zap, Search, Brain, Star } from 'lucide-react';
+import { scoreApplications } from '../utils/logisticRegression';
 
 const MatchIndicator = ({ percent }) => {
   const color = percent > 80 ? '#22c55e' : percent > 40 ? '#f59e0b' : '#ef4444';
@@ -40,6 +41,13 @@ const NGODashboard = () => {
   const [autoSelectionEnabled, setAutoSelectionEnabled] = useState(false);
   const [autoSelectionThreshold, setAutoSelectionThreshold] = useState(70);
   const [isRunningAutoSelection, setIsRunningAutoSelection] = useState(false);
+
+  // Logistic Regression state
+  const [lrPredictions, setLrPredictions] = useState(new Map());
+  const [lrModelMeta, setLrModelMeta] = useState(null);
+
+  // Feedback State
+  const [feedbackState, setFeedbackState] = useState({});
 
   useEffect(() => {
     if (!user) return;
@@ -78,7 +86,17 @@ const NGODashboard = () => {
         .order('match_score', { ascending: false });
 
       if (appsErr) throw appsErr;
-      setApplications(apps || []);
+      const appList = apps || [];
+      setApplications(appList);
+
+      // ── Run logistic regression on updated data ─────────────────────────
+      try {
+        const { modelMeta, predictions } = scoreApplications(appList);
+        setLrPredictions(predictions);
+        setLrModelMeta(modelMeta);
+      } catch (lrErr) {
+        console.warn('LR scoring failed:', lrErr);
+      }
     } catch (err) {
       toast.error('Failed to load dashboard');
     } finally {
@@ -227,6 +245,73 @@ const NGODashboard = () => {
     } catch (err) {
       console.error('Auto-selection failed:', err);
       toast.error(`Auto-selection failed: ${err.message}`, { id: t });
+    }
+  };
+
+  const handleToggleFeedback = (id) => {
+    setFeedbackState(prev => ({
+      ...prev,
+      [id]: { text: '', rating: 5, open: !prev[id]?.open }
+    }));
+  };
+
+  const handleFeedbackUpdate = (id, field, value) => {
+    setFeedbackState(prev => ({
+      ...prev,
+      [id]: { ...prev[id], [field]: value }
+    }));
+  };
+
+  const handleSubmitFeedback = async (appId, volunteerId) => {
+    const data = feedbackState[appId];
+    if (!data || !data.text.trim()) return toast.error('Feedback cannot be empty');
+
+    const toastId = toast.loading('Submitting feedback...');
+    try {
+      // 1. Update application row
+      const { error: appErr } = await supabase
+        .from('ngo_applications')
+        .update({ ngo_feedback: data.text, ngo_rating: data.rating })
+        .eq('id', appId);
+
+      if (appErr) throw appErr;
+
+      // 2. Award points (rating * 10)
+      const pointsToAward = data.rating * 10;
+      const { data: prof, error: fetchProfErr } = await supabase
+        .from('profiles')
+        .select('points, tasks_completed')
+        .eq('id', volunteerId)
+        .single();
+        
+      if (!fetchProfErr && prof) {
+         await supabase.from('profiles').update({
+           points: (prof.points || 0) + pointsToAward,
+           tasks_completed: (prof.tasks_completed || 0) + 1
+         }).eq('id', volunteerId);
+      }
+
+      // 3. Send notification to the volunteer
+      const { data: taskData } = await supabase
+        .from('ngo_applications')
+        .select('task_title, ngo_name')
+        .eq('id', appId)
+        .single();
+
+      await supabase.from('notifications').insert({
+        user_id: volunteerId,
+        type: 'feedback_received',
+        title: 'New Feedback & Points! ⭐',
+        message: `You received a ${data.rating}-star review for "${taskData?.task_title || 'a recent task'}". You earned ${pointsToAward} points! Review: "${data.text}"`,
+        related_id: appId
+      });
+
+      setApplications(apps => apps.map(a => a.id === appId ? { ...a, ngo_feedback: data.text, ngo_rating: data.rating } : a));
+      handleToggleFeedback(appId); // Close modal
+      toast.success('Feedback submitted! Notification sent to volunteer.', { id: toastId });
+    } catch(err) {
+      console.error(err);
+      toast.error('Failed to submit feedback', { id: toastId });
     }
   };
 
@@ -567,6 +652,35 @@ const NGODashboard = () => {
           )}
         </div>
       ) : (
+        <>
+        {/* ── Logistic Regression Model Banner ─────────────────────────── */}
+        {lrModelMeta && (
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '0.75rem',
+            background: 'rgba(201,168,76,0.06)', border: '1px solid rgba(201,168,76,0.2)',
+            borderRadius: 14, padding: '0.75rem 1.25rem', marginBottom: '1rem',
+            flexWrap: 'wrap',
+          }}>
+            <Brain size={18} style={{ color: 'var(--gold-mid)', flexShrink: 0 }} />
+            <div style={{ flex: 1 }}>
+              <span style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--gold-mid)' }}>
+                AI Logistic Regression Model
+              </span>
+              <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginLeft: '0.5rem' }}>
+                {lrModelMeta.trained
+                  ? `Trained on ${applications.filter(a => a.status !== 'pending').length} historical decisions · ${lrModelMeta.accuracy}% training accuracy`
+                  : 'Using default weights — approve/reject more applications to improve accuracy'}
+              </span>
+            </div>
+            <span style={{
+              fontSize: '0.7rem', fontWeight: 700, padding: '3px 10px',
+              borderRadius: 20, background: 'rgba(201,168,76,0.12)',
+              color: 'var(--gold-mid)', border: '1px solid rgba(201,168,76,0.25)',
+              textTransform: 'uppercase', letterSpacing: '0.05em'
+            }}>Live Predictions</span>
+          </div>
+        )}
+
         <div style={{ display: 'grid', gap: '1.25rem' }}>
           {filtered.map(app => (
             <div key={app.id} className="card card-hover" style={{
@@ -603,7 +717,30 @@ const NGODashboard = () => {
                         {t('applyingFor')} <span style={{ color: 'var(--gold-mid)', fontWeight: 600 }}>{app.task_title}</span>
                       </div>
                     </div>
-                    <MatchIndicator percent={app.match_score} />
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', alignItems: 'flex-end' }}>
+                      <MatchIndicator percent={app.match_score} />
+                      {/* ── AI Recommendation Badge ── */}
+                      {(() => {
+                        const pred = lrPredictions.get(app.id);
+                        if (!pred) return null;
+                        return (
+                          <div style={{
+                            display: 'flex', alignItems: 'center', gap: '0.4rem',
+                            background: `${pred.color}18`,
+                            border: `1px solid ${pred.color}40`,
+                            borderRadius: 20, padding: '3px 10px',
+                          }}>
+                            <Brain size={12} style={{ color: pred.color }} />
+                            <span style={{ fontSize: '0.7rem', fontWeight: 800, color: pred.color, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                              AI: {pred.recommendation}
+                            </span>
+                            <span style={{ fontSize: '0.7rem', color: pred.color, opacity: 0.8 }}>
+                              {pred.pct}%
+                            </span>
+                          </div>
+                        );
+                      })()}
+                    </div>
                   </div>
 
                   {/* Contact details */}
@@ -638,17 +775,73 @@ const NGODashboard = () => {
                           </button>
                         </>
                       ) : (
-                        <button onClick={() => handleUpdateStatus(app.id, 'pending')} className="btn btn-secondary" style={{ height: 40, borderRadius: 10 }}>
-                          {t('resetToPending')}
-                        </button>
+                        <div style={{ display: 'flex', gap: '0.6rem' }}>
+                          <button onClick={() => handleUpdateStatus(app.id, 'pending')} className="btn btn-secondary" style={{ height: 40, borderRadius: 10 }}>
+                            {t('resetToPending')}
+                          </button>
+                          {app.status === 'approved' && !app.ngo_feedback && (
+                            <button onClick={() => handleToggleFeedback(app.id)} className="btn btn-primary" style={{ height: 40, borderRadius: 10, background: 'var(--gold-grad)', color: '#1a0e05', border: 'none' }}>
+                              <Star size={16} style={{ marginRight: 4 }} fill="currentColor" /> Give Feedback
+                            </button>
+                          )}
+                        </div>
                       )}
                     </div>
                   </div>
+
+                  {/* Feedback Section (Submitted) */}
+                  {app.ngo_feedback && (
+                    <div style={{ background: 'rgba(201,168,76,0.05)', padding: '1rem', borderRadius: 12, border: '1px solid rgba(201,168,76,0.2)', marginTop: '1rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                        <div style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--gold-mid)', letterSpacing: '0.1em' }}>Your Feedback</div>
+                        <div style={{ display: 'flex', gap: '0.2rem' }}>
+                          {[1,2,3,4,5].map(star => (
+                            <Star key={star} size={14} fill={star <= app.ngo_rating ? 'var(--gold-mid)' : 'transparent'} color={star <= app.ngo_rating ? 'var(--gold-mid)' : 'var(--border-color)'} />
+                          ))}
+                        </div>
+                      </div>
+                      <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: 1.6, fontStyle: 'italic' }}>"{app.ngo_feedback}"</p>
+                    </div>
+                  )}
+
+                  {/* Feedback UI (Editing) */}
+                  {feedbackState[app.id]?.open && !app.ngo_feedback && (
+                    <div style={{ background: 'var(--bg-secondary)', padding: '1.25rem', borderRadius: 12, border: '1px solid var(--border-color)', marginTop: '1rem' }}>
+                      <h4 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.75rem' }}>Rate Volunteer & Leave Feedback</h4>
+                      
+                      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+                        {[1,2,3,4,5].map(star => (
+                          <button
+                            key={star}
+                            onClick={() => handleFeedbackUpdate(app.id, 'rating', star)}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                          >
+                            <Star size={24} fill={star <= feedbackState[app.id].rating ? 'var(--gold-mid)' : 'transparent'} color={star <= feedbackState[app.id].rating ? 'var(--gold-mid)' : 'var(--border-color)'} style={{ transition: 'all 0.2s' }} />
+                          </button>
+                        ))}
+                      </div>
+
+                      <textarea
+                        className="form-input"
+                        placeholder="Describe their contribution, attitude, and impact... (this will be public to them)"
+                        rows={3}
+                        value={feedbackState[app.id].text}
+                        onChange={e => handleFeedbackUpdate(app.id, 'text', e.target.value)}
+                        style={{ marginBottom: '1rem', resize: 'vertical' }}
+                      />
+
+                      <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                        <button onClick={() => handleToggleFeedback(app.id)} className="btn btn-secondary btn-sm">Cancel</button>
+                        <button onClick={() => handleSubmitFeedback(app.id, app.volunteer_id)} className="btn btn-primary btn-sm">Submit Feedback</button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           ))}
         </div>
+        </>
       )}
     </div>
   );

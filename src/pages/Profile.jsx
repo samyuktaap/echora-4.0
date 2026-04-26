@@ -21,10 +21,13 @@ const Profile = () => {
   const [saving, setSaving] = useState(false);
   const [showNoteForm, setShowNoteForm] = useState(false);
   const [notes, setNotes] = useState([]);
+  const [ngoFeedbacks, setNgoFeedbacks] = useState([]);
 
-  // Load notes from Supabase (only this user's notes, enforced by RLS)
+  // Load notes and feedback from Supabase
   useEffect(() => {
     if (!user) return;
+    
+    // Fetch personal notes
     supabase
       .from('notes')
       .select('*')
@@ -33,6 +36,42 @@ const Profile = () => {
       .then(({ data, error }) => {
         if (error) console.error('Notes fetch error:', error);
         else setNotes(data || []);
+      });
+
+    // Fetch NGO Feedback
+    supabase
+      .from('ngo_applications')
+      .select(`
+        id, 
+        task_title, 
+        ngo_feedback, 
+        ngo_rating, 
+        created_at,
+        ngo:profiles!ngo_id(name)
+      `)
+      .eq('volunteer_id', user.id)
+      .not('ngo_feedback', 'is', null)
+      .order('created_at', { ascending: false })
+      .then(({ data, error }) => {
+        if (error) {
+          console.error('NGO Feedback fetch error:', error);
+          // Fallback query if relation fails
+          supabase.from('ngo_applications')
+            .select('id, task_title, ngo_feedback, ngo_rating, created_at, ngo_id')
+            .eq('volunteer_id', user.id)
+            .not('ngo_feedback', 'is', null)
+            .order('created_at', { ascending: false })
+            .then(({ data: fallbackData }) => {
+               setNgoFeedbacks(fallbackData || []);
+            });
+        } else {
+          // Flatten the ngo name
+          const formatted = data?.map(fb => ({
+            ...fb,
+            ngo_name: fb.ngo?.name || 'NGO'
+          }));
+          setNgoFeedbacks(formatted || []);
+        }
       });
   }, [user]);
 
@@ -271,21 +310,41 @@ const Profile = () => {
           </div>
         )}
         <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          {notes.length === 0 ? (
+          {notes.length === 0 && ngoFeedbacks.length === 0 ? (
             <div className="empty-state">
               <div className="empty-icon">📝</div>
               <p>{t('noNotesYet')}</p>
             </div>
-          ) : notes.map(note => (
-            <div key={note.id} style={{ padding: '1.25rem', background: 'var(--bg-secondary)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{t(note.task)}</span>
-                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{note.date}</span>
-              </div>
-              <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', lineHeight: 1.6 }}>{t(note.note)}</p>
-              <StarRating value={note.rating} />
-            </div>
-          ))}
+          ) : (
+            <>
+              {/* NGO Feedbacks */}
+              {ngoFeedbacks.map(fb => (
+                <div key={`fb-${fb.id}`} style={{ padding: '1.25rem', background: 'rgba(201,168,76,0.06)', borderRadius: '12px', border: '1px solid rgba(201,168,76,0.3)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                    <div>
+                      <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--gold-mid)' }}>Feedback from {fb.ngo_name || 'NGO'}</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>for <span style={{ color: 'var(--text-primary)' }}>{fb.task_title || 'a task'}</span></div>
+                    </div>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{new Date(fb.created_at).toLocaleDateString('en-IN')}</span>
+                  </div>
+                  <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '0.75rem', lineHeight: 1.6, fontStyle: 'italic' }}>"{fb.ngo_feedback}"</p>
+                  <StarRating value={fb.ngo_rating || 5} />
+                </div>
+              ))}
+
+              {/* Personal Notes */}
+              {notes.map(note => (
+                <div key={note.id} style={{ padding: '1.25rem', background: 'var(--bg-secondary)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                    <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{t(note.task)}</span>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{note.date}</span>
+                  </div>
+                  <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', lineHeight: 1.6 }}>{t(note.note)}</p>
+                  <StarRating value={note.rating} />
+                </div>
+              ))}
+            </>
+          )}
         </div>
       </div>
     </div>

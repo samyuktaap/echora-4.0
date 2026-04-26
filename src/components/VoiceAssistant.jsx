@@ -23,6 +23,8 @@ const VoiceAssistant = () => {
     kn: false
   });
   const [missingVoiceWarning, setMissingVoiceWarning] = useState(null);
+  const [geminiKey, setGeminiKey] = useState(import.meta.env.VITE_GEMINI_API_KEY || localStorage.getItem('gemini_api_key') || '');
+  const [isAiThinking, setIsAiThinking] = useState(false);
   
   const synthRef = useRef(null);
   const recognitionRef = useRef(null);
@@ -118,23 +120,51 @@ const VoiceAssistant = () => {
     }
   }, []);
 
-  const handleUserInput = (text) => {
-    const lowerText = text.toLowerCase();
-    let response = '';
+  const handleUserInput = async (text) => {
+    const userMessage = { text: text, sender: 'user', language: selectedLanguage };
+    setChatMessages(prev => [...prev, userMessage]);
     
-    if (lowerText.includes('hello') || lowerText.includes('hi') || lowerText.includes('hey') || lowerText.includes('greetings')) {
-      response = aiResponses[selectedLanguage].greeting;
-    } else if (lowerText.includes('help') || lowerText.includes('what can you do') || lowerText.includes('assist') || lowerText.includes('support')) {
-      response = aiResponses[selectedLanguage].help;
+    let finalResponse = '';
+
+    if (geminiKey) {
+      setIsAiThinking(true);
+      try {
+        const langMap = { en: 'English', hi: 'Hindi', ta: 'Tamil', kn: 'Kannada' };
+        const prompt = `You are the ECHORA AI Assistant, an empathetic and helpful guide for a volunteering platform in India. 
+Respond ONLY in ${langMap[selectedLanguage]}. Be concise (2-3 sentences max).
+User asked: "${text}"`;
+
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+        });
+        
+        const data = await res.json();
+        if (data.error) throw new Error(data.error.message);
+        
+        finalResponse = data.candidates[0].content.parts[0].text.replace(/\*/g, ''); // Strip markdown
+      } catch (err) {
+        console.error('Gemini error:', err);
+        finalResponse = "I'm having trouble reaching my AI brain right now. Please check your API key or try again later.";
+      } finally {
+        setIsAiThinking(false);
+      }
     } else {
-      response = aiResponses[selectedLanguage].default;
+      // Fallback logic
+      const lowerText = text.toLowerCase();
+      if (lowerText.includes('hello') || lowerText.includes('hi') || lowerText.includes('hey')) {
+        finalResponse = aiResponses[selectedLanguage].greeting;
+      } else if (lowerText.includes('help')) {
+        finalResponse = aiResponses[selectedLanguage].help;
+      } else {
+        finalResponse = aiResponses[selectedLanguage].default;
+      }
     }
     
-    const userMessage = { text: text, sender: 'user', language: selectedLanguage };
-    const aiMessage = { text: response, sender: 'ai', language: selectedLanguage };
-    
-    setChatMessages(prev => [...prev, userMessage, aiMessage]);
-    speak(response);
+    const aiMessage = { text: finalResponse, sender: 'ai', language: selectedLanguage };
+    setChatMessages(prev => [...prev, aiMessage]);
+    speak(finalResponse);
   };
 
   const speak = (text) => {
@@ -351,37 +381,7 @@ const VoiceAssistant = () => {
               </div>
             </div>
 
-            {/* Voice Status Display */}
-            <div style={{ 
-              padding: '0.75rem', 
-              background: 'rgba(59,130,246,0.1)', 
-              borderRadius: 'var(--radius-md)', 
-              marginBottom: '1rem',
-              border: '1px solid rgba(59,130,246,0.2)'
-            }}>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.5rem', fontWeight: 600 }}>{t('voiceStatus')}:</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-                {languages.map(lang => (
-                  <div key={lang.code} style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '0.5rem',
-                    fontSize: '0.8rem',
-                    color: voiceStatus[lang.code] ? '#10b981' : '#ef4444',
-                    fontWeight: 500
-                  }}>
-                    <span style={{ 
-                      width: '8px', 
-                      height: '8px', 
-                      borderRadius: '50%', 
-                      background: voiceStatus[lang.code] ? '#10b981' : '#ef4444',
-                      display: 'inline-block'
-                    }}></span>
-                    {lang.name}: {voiceStatus[lang.code] ? 'Ready' : 'Not Found'}
-                  </div>
-                ))}
-              </div>
-            </div>
+
 
             {/* Current Language Display */}
             <div style={{ 
@@ -420,6 +420,8 @@ const VoiceAssistant = () => {
                 </div>
               </div>
             )}
+
+
 
             {/* Voice Controls */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1rem' }}>
@@ -631,6 +633,14 @@ const VoiceAssistant = () => {
                 </div>
               </div>
             ))}
+            
+            {isAiThinking && (
+              <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '0.75rem' }}>
+                <div style={{ background: 'var(--bg-secondary)', padding: '0.5rem 1rem', borderRadius: 'var(--radius-md)', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                  Thinking...
+                </div>
+              </div>
+            )}
             
             {chatMessages.length === 0 && (
               <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem', marginTop: '2rem' }}>

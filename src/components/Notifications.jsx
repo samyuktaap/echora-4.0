@@ -134,17 +134,13 @@ const Notifications = () => {
       <button
         onClick={() => setShowNotifications(!showNotifications)}
         style={{
-          position: 'relative',
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          padding: '0.5rem',
-          borderRadius: '8px',
-          color: 'var(--text-secondary)',
-          transition: 'all 0.2s'
+          width: 42, height: 42, borderRadius: '10px', position: 'relative',
+          background: 'var(--bg-input)', border: '1px solid var(--border-color)',
+          cursor: 'pointer', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s',
+          color: 'var(--text-secondary)'
         }}
-        onMouseEnter={(e) => e.target.style.background = 'rgba(255,255,255,0.05)'}
-        onMouseLeave={(e) => e.target.style.background = 'none'}
+        onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--primary-mid)'}
+        onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border-color)'}
       >
         <Bell size={20} />
         {unreadCount > 0 && (

@@ -4,8 +4,9 @@ import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { mockNGORequests } from '../data/mockData';
-import { Search, Sun, Moon, Bell, MapPin, Menu, Building, Star, Handshake, Globe } from 'lucide-react';
+import { Search, Sun, Moon, MapPin, Menu, Globe } from 'lucide-react';
 import LanguageSwitcher from './LanguageSwitcher';
+import Notifications from './Notifications';
 
 const PAGE_TITLES = {
   '/dashboard': 'pageDashboard',
@@ -28,7 +29,6 @@ const Navbar = ({ onMenuClick }) => {
   const [search, setSearch] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [showSearch, setShowSearch] = useState(false);
-  const [showNotifs, setShowNotifs] = useState(false);
   const [showLangMenu, setShowLangMenu] = useState(false);
 
   const pageTitle = t(PAGE_TITLES[location.pathname]) || 'ECHORA';
@@ -43,12 +43,6 @@ const Navbar = ({ onMenuClick }) => {
     ).slice(0, 5);
     setSearchResults(results);
   };
-
-  const notifications = [
-    { id: 1, text: 'Hope Foundation posted a new task in your area', time: '2m ago', icon: '🏢' },
-    { id: 2, text: 'You earned 25 points for applying to a task', time: '1h ago', icon: '⭐' },
-    { id: 3, text: 'Volunteer Connect Bangalore meetup in 7 days', time: '3h ago', icon: '🤝' },
-  ];
 
   return (
     <header style={{
@@ -126,46 +120,7 @@ const Navbar = ({ onMenuClick }) => {
         </button>
 
         {/* Notifications */}
-        <div style={{ position: 'relative' }}>
-          <button onClick={() => setShowNotifs(p => !p)} style={{
-            width: 42, height: 42, borderRadius: '10px', position: 'relative',
-            background: 'var(--bg-input)', border: '1px solid var(--border-color)',
-            cursor: 'pointer', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s',
-          }}
-            onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--primary-mid)'}
-            onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-color)'}>
-            <Bell size={18} strokeWidth={2} />
-            <span className="notification-dot" />
-          </button>
-          {showNotifs && (
-            <div style={{
-              position: 'absolute', top: '110%', right: 0, width: 300,
-              background: 'var(--bg-card)', border: '1px solid var(--border-color)',
-              borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-lg)', zIndex: 999, overflow: 'hidden',
-            }}>
-              <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid var(--border-color)', fontWeight: 700, fontSize: '0.875rem' }}>{t('notifications')}</div>
-              {notifications.map(n => {
-                const getIcon = (icon) => {
-                  switch(icon) {
-                    case '🏢': return <Building size={16} strokeWidth={2} />;
-                    case '⭐': return <Star size={16} strokeWidth={2} />;
-                    case '🤝': return <Handshake size={16} strokeWidth={2} />;
-                    default: return <Bell size={16} strokeWidth={2} />;
-                  }
-                };
-                return (
-                  <div key={n.id} style={{ padding: '1rem 1.5rem', borderBottom: '1px solid var(--border-color)', display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
-                    <span style={{ fontSize: '1.1rem', flexShrink: 0, color: 'var(--primary-mid)' }}>{getIcon(n.icon)}</span>
-                    <div>
-                      <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)', marginBottom: '0.25rem', lineHeight: '1.4' }}>{n.text}</div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{n.time}</div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+        <Notifications />
 
         {/* Language Switcher */}
         <div style={{ position: 'relative' }}>
