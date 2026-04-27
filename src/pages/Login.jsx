@@ -19,7 +19,7 @@ const Login = () => {
   const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '' });
   const [showPass, setShowPass] = useState(false);
 
-  const accentColor = '#a7c080'; // The green from the image
+  const accentColor = '#d8b4fe'; // Light Purple accent
 
   const slides = [
     {
@@ -206,8 +206,8 @@ const Login = () => {
           {/* Header Branding */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
             <div style={{ position: 'relative' }}>
-              <img src="/echora-logo.svg" style={{ width: 48, height: 48, filter: 'drop-shadow(0 0 15px rgba(167, 192, 128, 0.4))' }} alt="Logo" />
-              <div style={{ position: 'absolute', inset: -4, border: '1px solid rgba(167, 192, 128, 0.2)', borderRadius: '50%', animation: 'pulse 3s infinite' }} />
+              <img src="/echora-logo.svg" style={{ width: 48, height: 48, filter: 'drop-shadow(0 0 15px rgba(216, 180, 254, 0.4))' }} alt="Logo" />
+              <div style={{ position: 'absolute', inset: -4, border: '1px solid rgba(216, 180, 254, 0.2)', borderRadius: '50%', animation: 'pulse 3s infinite' }} />
             </div>
             <div>
               <div className="dynamic-branding" style={{ 
@@ -215,7 +215,7 @@ const Login = () => {
                 fontWeight: 900, 
                 fontFamily: 'var(--font-display)', 
                 lineHeight: 1,
-                background: 'linear-gradient(90deg, #a7c080 0%, #d3e39d 50%, #a7c080 100%)',
+                background: 'linear-gradient(90deg, #d8b4fe 0%, #f5d0fe 50%, #d8b4fe 100%)',
                 backgroundSize: '200% auto',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
