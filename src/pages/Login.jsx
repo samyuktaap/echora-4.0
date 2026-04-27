@@ -304,7 +304,7 @@ const Login = () => {
               </div>
             )}
 
-            <div style={{ display: 'flex', alignItems: 'center', justifySpace: 'between', marginTop: '-0.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '-0.5rem' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.85rem', opacity: 0.4, cursor: 'pointer', flex: 1 }}>
                 <input type="checkbox" style={{ accentColor }} />
                 Remember me

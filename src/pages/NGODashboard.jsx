@@ -653,33 +653,6 @@ const NGODashboard = () => {
         </div>
       ) : (
         <>
-        {/* ── Logistic Regression Model Banner ─────────────────────────── */}
-        {lrModelMeta && (
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: '0.75rem',
-            background: 'rgba(201,168,76,0.06)', border: '1px solid rgba(201,168,76,0.2)',
-            borderRadius: 14, padding: '0.75rem 1.25rem', marginBottom: '1rem',
-            flexWrap: 'wrap',
-          }}>
-            <Brain size={18} style={{ color: 'var(--gold-mid)', flexShrink: 0 }} />
-            <div style={{ flex: 1 }}>
-              <span style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--gold-mid)' }}>
-                AI Logistic Regression Model
-              </span>
-              <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginLeft: '0.5rem' }}>
-                {lrModelMeta.trained
-                  ? `Trained on ${applications.filter(a => a.status !== 'pending').length} historical decisions · ${lrModelMeta.accuracy}% training accuracy`
-                  : 'Using default weights — approve/reject more applications to improve accuracy'}
-              </span>
-            </div>
-            <span style={{
-              fontSize: '0.7rem', fontWeight: 700, padding: '3px 10px',
-              borderRadius: 20, background: 'rgba(201,168,76,0.12)',
-              color: 'var(--gold-mid)', border: '1px solid rgba(201,168,76,0.25)',
-              textTransform: 'uppercase', letterSpacing: '0.05em'
-            }}>Live Predictions</span>
-          </div>
-        )}
 
         <div style={{ display: 'grid', gap: '1.25rem' }}>
           {filtered.map(app => (
@@ -719,27 +692,6 @@ const NGODashboard = () => {
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', alignItems: 'flex-end' }}>
                       <MatchIndicator percent={app.match_score} />
-                      {/* ── AI Recommendation Badge ── */}
-                      {(() => {
-                        const pred = lrPredictions.get(app.id);
-                        if (!pred) return null;
-                        return (
-                          <div style={{
-                            display: 'flex', alignItems: 'center', gap: '0.4rem',
-                            background: `${pred.color}18`,
-                            border: `1px solid ${pred.color}40`,
-                            borderRadius: 20, padding: '3px 10px',
-                          }}>
-                            <Brain size={12} style={{ color: pred.color }} />
-                            <span style={{ fontSize: '0.7rem', fontWeight: 800, color: pred.color, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                              AI: {pred.recommendation}
-                            </span>
-                            <span style={{ fontSize: '0.7rem', color: pred.color, opacity: 0.8 }}>
-                              {pred.pct}%
-                            </span>
-                          </div>
-                        );
-                      })()}
                     </div>
                   </div>
 
