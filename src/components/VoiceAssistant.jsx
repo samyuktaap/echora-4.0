@@ -25,6 +25,7 @@ const VoiceAssistant = () => {
   const [missingVoiceWarning, setMissingVoiceWarning] = useState(null);
   const [geminiKey, setGeminiKey] = useState(import.meta.env.VITE_GEMINI_API_KEY || localStorage.getItem('gemini_api_key') || '');
   const [isAiThinking, setIsAiThinking] = useState(false);
+  const [testStatus, setTestStatus] = useState(null); // null | 'testing' | 'success' | 'error'
   
   const synthRef = useRef(null);
   const recognitionRef = useRef(null);
@@ -134,11 +135,22 @@ const VoiceAssistant = () => {
 Respond ONLY in ${langMap[selectedLanguage]}. Be concise (2-3 sentences max).
 User asked: "${text}"`;
 
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-        });
+        let res;
+        try {
+          res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+          });
+          if (!res.ok) throw new Error('Primary model failed');
+        } catch (e) {
+          console.warn('Primary model failed, trying fallback...');
+          res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+          });
+        }
         
         const data = await res.json();
         if (data.error) throw new Error(data.error.message);
@@ -146,7 +158,7 @@ User asked: "${text}"`;
         finalResponse = data.candidates[0].content.parts[0].text.replace(/\*/g, ''); // Strip markdown
       } catch (err) {
         console.error('Gemini error:', err);
-        finalResponse = "I'm having trouble reaching my AI brain right now. Please check your API key or try again later.";
+        finalResponse = `API Error: ${err.message || 'Unknown connection problem'}. Please verify your Gemini API key in Settings.`;
       } finally {
         setIsAiThinking(false);
       }
@@ -165,6 +177,40 @@ User asked: "${text}"`;
     const aiMessage = { text: finalResponse, sender: 'ai', language: selectedLanguage };
     setChatMessages(prev => [...prev, aiMessage]);
     speak(finalResponse);
+  };
+
+  const testConnection = async () => {
+    if (!geminiKey) {
+      setTestStatus('error');
+      setTimeout(() => setTestStatus(null), 3000);
+      return;
+    }
+    setTestStatus('testing');
+    try {
+      let res;
+      try {
+        res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: [{ text: 'Hello' }] }] })
+        });
+        if (!res.ok) throw new Error('Primary failed');
+      } catch (e) {
+        res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: [{ text: 'Hello' }] }] })
+        });
+      }
+      
+      const data = await res.json();
+      if (data.error) throw new Error(data.error.message);
+      setTestStatus('success');
+    } catch (err) {
+      console.error('Test failed:', err);
+      setTestStatus('error');
+    }
+    setTimeout(() => setTestStatus(null), 3000);
   };
 
   const speak = (text) => {
@@ -408,6 +454,24 @@ User asked: "${text}"`;
                     border: '1px solid rgba(255,255,255,0.1)'
                   }}
                 />
+                <button
+                  onClick={testConnection}
+                  disabled={testStatus === 'testing'}
+                  style={{
+                    padding: '0 1rem',
+                    background: testStatus === 'success' ? 'var(--success)' : testStatus === 'error' ? 'var(--danger)' : 'var(--primary-grad)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: 'var(--radius-md)',
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    minWidth: '100px',
+                    transition: 'all 0.3s ease'
+                  }}
+                >
+                  {testStatus === 'testing' ? t('testing') : testStatus === 'success' ? t('success') : testStatus === 'error' ? t('error') : t('testKey')}
+                </button>
               </div>
               <p style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '0.6rem', lineHeight: 1.4 }}>
                 Required for AI voice features. Your key is stored <strong>locally</strong> and never sent to our servers.
