@@ -7,11 +7,13 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start": "node server.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.103.3",
     "@tanstack/react-query": "^5.99.2",
+    "express": "^5.2.1",
     "firebase": "^12.12.0",
     "framer-motion": "^12.38.0",
     "i18next": "^26.0.6",
