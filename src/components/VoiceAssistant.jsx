@@ -26,6 +26,7 @@ const VoiceAssistant = () => {
   const [geminiKey, setGeminiKey] = useState(import.meta.env.VITE_GEMINI_API_KEY || localStorage.getItem('gemini_api_key') || '');
   const [isAiThinking, setIsAiThinking] = useState(false);
   const [testStatus, setTestStatus] = useState(null); // null | 'testing' | 'success' | 'error'
+  const [workingModel, setWorkingModel] = useState(localStorage.getItem('gemini_working_model') || null);
   
   const synthRef = useRef(null);
   const recognitionRef = useRef(null);
@@ -151,41 +152,41 @@ IMPORTANT: DO NOT REPEAT YOURSELF. Be creative, engaging, and varied in your res
           { role: 'user', parts: [{ text: `${systemInstruction}\n\nUser Message: "${text}"` }] }
         ];
 
-        const models = ['gemini-2.0-flash', 'gemini-flash-latest', 'gemini-pro', 'gemini-1.5-flash'];
-        let res;
-        let lastError = '';
-
-        for (const model of models) {
-          try {
-            res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ 
-                contents,
-                generationConfig: {
-                  temperature: 0.9,
-                  topK: 40,
-                  topP: 0.95,
-                  maxOutputTokens: 1024,
-                }
-              })
-            });
-            if (res.ok) {
-              const data = await res.json();
-              if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
-                finalResponse = data.candidates[0].content.parts[0].text.replace(/\*/g, '');
-                break;
-              }
-            } else {
-              const errData = await res.json();
-              lastError = errData.error?.message || res.statusText;
-            }
-          } catch (e) {
-            lastError = e.message;
-          }
-        }
+        const modelsToTry = workingModel ? [workingModel] : ['gemini-2.0-flash', 'gemini-flash-latest', 'gemini-pro', 'gemini-1.5-flash'];
         
-        if (!finalResponse) throw new Error(lastError || 'All models failed');
+        const fetchWithModel = async (model) => {
+          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              contents,
+              generationConfig: { temperature: 0.9, topK: 40, topP: 0.95, maxOutputTokens: 1024 }
+            })
+          });
+          if (!res.ok) throw new Error(`Model ${model} failed`);
+          const data = await res.json();
+          if (!data.candidates || !data.candidates[0]?.content?.parts[0]?.text) throw new Error(`Invalid response from ${model}`);
+          return { text: data.candidates[0].content.parts[0].text.replace(/\*/g, ''), model };
+        };
+
+        if (workingModel) {
+          try {
+            const result = await fetchWithModel(workingModel);
+            finalResponse = result.text;
+          } catch (e) {
+            console.warn('Cached model failed, clearing cache...');
+            setWorkingModel(null);
+            localStorage.removeItem('gemini_working_model');
+            // Will fall back to default behavior on next message or we could retry now
+            throw e; 
+          }
+        } else {
+          // Discovery mode: try all in parallel
+          const results = await Promise.any(modelsToTry.map(m => fetchWithModel(m)));
+          finalResponse = results.text;
+          setWorkingModel(results.model);
+          localStorage.setItem('gemini_working_model', results.model);
+        }
       } catch (err) {
         console.error('Gemini error:', err);
         finalResponse = `API Error: ${err.message || 'Unknown connection problem'}. Please verify your Gemini API key in Settings.`;
