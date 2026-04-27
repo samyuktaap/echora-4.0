@@ -165,8 +165,8 @@ export const TRANSLATIONS = {
     tryAdjustingFilters: 'Try adjusting your filters or search terms',
     testKey: 'Test Key',
     testing: 'Testing...',
-    success: 'Success ✅',
-    error: 'Error ❌',
+    testSuccess: 'Success ✅',
+    testError: 'Error ❌',
     // Map
     mapVolunteers: 'Volunteers',
     mapNGOTasks: 'NGO Tasks',
@@ -352,8 +352,8 @@ export const TRANSLATIONS = {
     tryAdjustingFilters: 'अपने फ़िल्टर या खोज शब्दों को समायोजित करने का प्रयास करें',
     testKey: 'कुंजी का परीक्षण करें',
     testing: 'परीक्षण हो रहा है...',
-    success: 'सफलता ✅',
-    error: 'त्रुटि ❌',
+    testSuccess: 'सफलता ✅',
+    testError: 'त्रुटि ❌',
     // Map
     mapVolunteers: 'स्वयंसेवक',
     mapNGOTasks: 'NGO कार्य',
@@ -476,8 +476,8 @@ export const TRANSLATIONS = {
     tryAdjustingFilters: 'உங்கள் வடிப்பான்கள் அல்லது தேடல் சொற்களைச் சரிசெய்ய முயற்சிக்கவும்',
     testKey: 'சாவியை சோதிக்கவும்',
     testing: 'சோதிக்கிறது...',
-    success: 'வெற்றி ✅',
-    error: 'பிழை ❌',
+    testSuccess: 'வெற்றி ✅',
+    testError: 'பிழை ❌',
     // Map
     mapVolunteers: 'தன்னார்வலர்கள்',
     mapNGOTasks: 'NGO பணிகள்',
@@ -600,8 +600,8 @@ export const TRANSLATIONS = {
     tryAdjustingFilters: 'ನಿಮ್ಮ ಫಿಲ್ಟರ್‌ಗಳು ಅಥವಾ ಹುಡುಕಾಟ ಪದಗಳನ್ನು ಸರಿಹೊಂದಿಸಲು ಪ್ರಯತ್ನಿಸಿ',
     testKey: 'ಕೀಲಿಯನ್ನು ಪರೀಕ್ಷಿಸಿ',
     testing: 'ಪರೀಕ್ಷಿಸಲಾಗುತ್ತಿದೆ...',
-    success: 'ಯಶಸ್ಸು ✅',
-    error: 'ದೋಷ ❌',
+    testSuccess: 'ಯಶಸ್ಸು ✅',
+    testError: 'ದೋಷ ❌',
     // Map
     mapVolunteers: 'स्वयंसेवक',
     mapNGOTasks: 'NGO ಕಾರ್ಯಗಳು',

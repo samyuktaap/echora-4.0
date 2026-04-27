@@ -525,7 +525,7 @@ DO NOT REPEAT YOURSELF. Be creative, engaging, and varied in your responses.`;
                     transition: 'all 0.3s ease'
                   }}
                 >
-                  {testStatus === 'testing' ? t('testing') : testStatus === 'success' ? t('success') : testStatus === 'error' ? t('error') : t('testKey')}
+                  {testStatus === 'testing' ? t('testing') : testStatus === 'success' ? t('testSuccess') : testStatus === 'error' ? t('testError') : t('testKey')}
                 </button>
                 <button
                   onClick={reinitializeAudio}
