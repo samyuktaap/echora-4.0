@@ -155,7 +155,7 @@ DO NOT REPEAT YOURSELF. Be creative, engaging, and varied in your responses.`;
           { role: 'user', parts: [{ text: `${systemInstruction}\n\nUser Message: "${text}"` }] }
         ];
 
-        const modelsToTry = workingModel ? [workingModel] : ['gemini-2.0-flash', 'gemini-flash-latest', 'gemini-pro', 'gemini-1.5-flash'];
+        const modelsToTry = workingModel ? [workingModel] : ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-pro'];
         
         const fetchWithModel = async (model) => {
           const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`, {
