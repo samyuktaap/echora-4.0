@@ -90,35 +90,56 @@ const Sidebar = ({ onClose }) => {
         </div>
       </div>
 
-      {/* User card */}
+      {/* User card (Glassmorphism) */}
       {profile && (
-        <div style={{ padding: '1.5rem 1.5rem', borderBottom: '1px solid var(--border-color)', flexShrink: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div className="avatar" style={{ width: 42, height: 42, fontSize: '0.9rem' }}>
-              {profile.name?.charAt(0) || '?'}
+        <div style={{ 
+          margin: '1rem', 
+          padding: '1.5rem', 
+          background: 'rgba(255,255,255,0.05)', 
+          borderRadius: '24px', 
+          border: '1px solid rgba(255,255,255,0.08)',
+          boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
+          flexShrink: 0 
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.25rem' }}>
+            <div style={{ position: 'relative' }}>
+              <div className="avatar" style={{ 
+                width: 48, height: 48, 
+                fontSize: '1rem', 
+                background: 'var(--primary-grad)',
+                border: '2px solid rgba(255,255,255,0.1)'
+              }}>
+                {profile.name?.charAt(0) || '?'}
+              </div>
+              <div style={{ 
+                position: 'absolute', bottom: 2, right: 2, 
+                width: 12, height: 12, borderRadius: '50%', 
+                background: '#4ade80', border: '2px solid #1a1f2e' 
+              }} />
             </div>
             <div style={{ minWidth: 0, flex: 1 }}>
-              <div style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {profile.name || 'Volunteer'}
+              <div style={{ fontWeight: 700, fontSize: '1rem', color: '#ffffff', marginBottom: '0.15rem' }}>
+                {profile.name || 'Demo User'}
               </div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                <span style={{ color: 'var(--primary-mid)' }}>{profile.points || 0} {t('pts')}</span>
-                {' · '}{profile.experience || 'Beginner'}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem', color: '#d8b4fe', fontWeight: 600 }}>
+                <Star size={12} fill="#d8b4fe" /> {profile.points || 450} XP
               </div>
             </div>
           </div>
-          {/* Points progress */}
-          <div style={{ marginTop: '1rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                {profile.points < 200 ? t('toSilver') : profile.points < 500 ? t('toGold') : t('toPlatinum')}
-              </span>
-              <span style={{ fontSize: '0.7rem', color: 'var(--primary-mid)' }}>
-                {profile.points < 200 ? `${200 - profile.points} ${t('left')}` : profile.points < 500 ? `${500 - profile.points} ${t('left')}` : `${1000 - profile.points} ${t('left')}`}
-              </span>
+
+          {/* Level Progress */}
+          <div style={{ marginTop: '0.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.6rem' }}>
+              <span style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', fontWeight: 700, letterSpacing: '0.05em' }}>LEVEL PROGRESS</span>
+              <span style={{ fontSize: '0.65rem', color: '#ffffff', fontWeight: 700 }}>80%</span>
             </div>
-            <div className="progress-bar" style={{ height: 6 }}>
-              <div className="progress-fill" style={{ width: `${Math.min(((profile.points || 0) / (profile.points < 200 ? 200 : profile.points < 500 ? 500 : 1000)) * 100, 100)}%` }} />
+            <div style={{ height: 6, background: 'rgba(255,255,255,0.1)', borderRadius: '10px', overflow: 'hidden' }}>
+              <div style={{ 
+                height: '100%', 
+                width: '80%', 
+                background: 'linear-gradient(90deg, #6366f1 0%, #d8b4fe 100%)', 
+                borderRadius: '10px' 
+              }} />
             </div>
           </div>
         </div>

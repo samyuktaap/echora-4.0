@@ -6,16 +6,33 @@ import { mockNGORequests, mockMeetups, mockImpactStats } from '../data/mockData'
 import { translateArray } from '../utils/translationHelper';
 import { getTranslatedSkill } from '../data/contentTranslations';
 import { CheckCircle, Star, Trophy, Handshake, MapPin, Calendar, Users, TrendingUp, Award, Target, BarChart3, Map, Navigation } from 'lucide-react';
+import BannerSlider from '../components/BannerSlider';
 
 const StatCard = ({ icon: IconComponent, label, value, color, delta }) => (
-  <div className="stat-card card-hover fade-in">
-    <div className="stat-icon" style={{ background: `${color}18` }}>
-      <IconComponent size={24} strokeWidth={2} style={{ color }} />
+  <div className="card fade-in" style={{ 
+    padding: '2.5rem', 
+    background: '#ffffff', 
+    borderRadius: '24px',
+    border: '1px solid rgba(0,0,0,0.04)',
+    boxShadow: '0 10px 30px rgba(0,0,0,0.02)',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '1.5rem',
+    transition: 'all 0.3s ease'
+  }}>
+    <div className="stat-icon" style={{ 
+      width: 64, height: 64, 
+      borderRadius: '20px', 
+      background: `${color}10`,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }}>
+      <IconComponent size={28} strokeWidth={2} style={{ color }} />
     </div>
     <div>
-      <div className="stat-number" style={{ color }}>{value}</div>
-      <div className="stat-label">{label}</div>
-      {delta && <div style={{ fontSize: '0.7rem', color: 'var(--success)', marginTop: '2px' }}>↑ {delta}</div>}
+      <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.25rem' }}>{label}</div>
+      <div style={{ fontSize: '2.4rem', fontWeight: 800, color: '#1e293b', fontFamily: 'var(--font-display)', lineHeight: 1 }}>{value}</div>
     </div>
   </div>
 );
@@ -24,10 +41,6 @@ const Dashboard = () => {
   const { profile } = useAuth();
   const { t, language } = useLanguage();
   const navigate = useNavigate();
-  const [greeting] = useState(() => {
-    const h = new Date().getHours();
-    return h < 12 ? 'greetingMorning' : h < 17 ? 'greetingAfternoon' : 'greetingEvening';
-  });
 
   const matchedTasks = translateArray(mockNGORequests.filter(req =>
     profile?.skills?.some(skill => req.requiredSkills?.includes(skill)) ||
@@ -36,53 +49,10 @@ const Dashboard = () => {
 
   const translatedMeetups = translateArray(mockMeetups.slice(0, 2), language, 'meetups');
 
-  const points = profile?.points || 0;
-  const nextTier = points < 200 ? { name: 'Silver', needed: 200 } : points < 500 ? { name: 'Gold', needed: 500 } : { name: 'Platinum', needed: 1000 };
-  const progress = Math.min((points / nextTier.needed) * 100, 100);
-
   return (
-    <div className="page-container">
-      {/* Hero */}
-      <div className="card hero-gradient mb-4 card-gold">
-        <div className="card-body" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1.5rem', flexWrap: 'wrap' }}>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.3rem', letterSpacing: '0.05em' }}>{t(greeting)}</div>
-            <h1 style={{ fontSize: '2rem', marginBottom: '0.4rem', fontFamily: 'var(--font-display)' }}>
-              {t('welcome')} <span className="gradient-text">{profile?.name?.split(' ')[0] || t('volunteerRole')}</span>
-            </h1>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.875rem', marginBottom: '1rem' }}>
-              <MapPin size={14} strokeWidth={2} />
-              <span>{profile?.location ? `${profile.location}${profile.state ? `, ${profile.state}` : ''}` : 'India'}</span>
-              <span style={{ color: 'var(--text-muted)' }}>·</span>
-              <span>{profile?.experience || t('beginner')} {t('volunteerRole')}</span>
-              {profile?.skills?.length > 0 && (
-                <>
-                  <span style={{ color: 'var(--text-muted)' }}>·</span>
-                  <span>{profile.skills.slice(0,3).join(', ')}</span>
-                </>
-              )}
-            </div>
-            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-              {profile?.badges?.map(b => (
-                <span key={b} className="badge badge-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <Award size={12} strokeWidth={2} /> {b}
-                </span>
-              ))}
-            </div>
-          </div>
-          <div style={{ textAlign: 'center', flexShrink: 0 }}>
-            <div className="avatar avatar-xl" style={{ margin: '0 auto 0.75rem' }}>{profile?.name?.charAt(0) || '?'}</div>
-            <div className="gradient-text" style={{ fontFamily: 'var(--font-display)', fontSize: '1.6rem', fontWeight: 800 }}>{points}</div>
-            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{t('points')}</div>
-            <div style={{ marginTop: '0.6rem', width: 90 }}>
-              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>{nextTier.needed - points} {t('left')} {t('to' + nextTier.name)}</div>
-              <div className="progress-bar" style={{ height: 4 }}>
-                <div className="progress-fill" style={{ width: `${progress}%` }} />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div className="page-container" style={{ background: '#f8f9fa', minHeight: '100vh' }}>
+      {/* Banner Slider */}
+      <BannerSlider />
 
       {/* Stats */}
       <div className="grid-4 mb-4">
