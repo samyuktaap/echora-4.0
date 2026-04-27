@@ -25,18 +25,21 @@ const Login = () => {
       title: 'Make a Real Difference',
       highlight: 'Difference',
       desc: 'Join thousands of volunteers working with verified NGOs across all 28 Indian states.',
+      quote: '"The best way to find yourself is to lose yourself in the service of others." — Mahatma Gandhi',
     },
     {
       image: '/slides/slide2.png',
       title: 'Empower Lives Daily',
       highlight: 'Lives',
       desc: 'Help provide education, food, and medical aid to those in need in urban and rural India.',
+      quote: '"We make a living by what we get, but we make a life by what we give." — Winston Churchill',
     },
     {
       image: '/slides/slide3.png',
       title: 'Protect Our Future',
       highlight: 'Future',
       desc: 'Contribute to environmental sustainability and urban development projects in your city.',
+      quote: '"Volunteers don\'t get paid, not because they\'re worthless, but because they\'re priceless."',
     }
   ];
 
@@ -85,12 +88,7 @@ const Login = () => {
     }
   };
 
-  const stats = [
-    { value: '1,248+', label: 'Volunteers' },
-    { value: '89+', label: 'NGOs' },
-    { value: '3,672+', label: 'Tasks Done' },
-    { value: '28', label: 'States' },
-  ];
+
 
   const features = [
     { icon: '🗺️', text: t('featureMapDiscovery') },
@@ -165,7 +163,7 @@ const Login = () => {
           </div>
 
           {/* Animated Text Content */}
-          <div style={{ minHeight: '220px' }}>
+          <div style={{ minHeight: '320px' }}>
             {slides.map((slide, idx) => (
               <div
                 key={idx}
@@ -179,9 +177,26 @@ const Login = () => {
                   <span style={{ background: 'linear-gradient(90deg, #c9a84c 0%, #a68b3e 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', opacity: 0.8 }}>{slide.highlight}</span><br />
                   {slide.title.split(slide.highlight)[1]} Across India
                 </h1>
-                <p style={{ color: 'rgba(232,223,200,0.5)', fontSize: '1rem', marginBottom: '2.5rem', lineHeight: 1.7 }}>
+                <p style={{ color: 'rgba(232,223,200,0.5)', fontSize: '1rem', marginBottom: '1.5rem', lineHeight: 1.7 }}>
                   {slide.desc}
                 </p>
+                <div style={{ 
+                  padding: '1rem', 
+                  borderLeft: '2px solid var(--gold-mid)', 
+                  background: 'rgba(201,168,76,0.05)', 
+                  borderRadius: '0 8px 8px 0',
+                  marginBottom: '2.5rem'
+                }}>
+                  <p style={{ 
+                    color: 'rgba(232,223,200,0.6)', 
+                    fontSize: '0.85rem', 
+                    fontStyle: 'italic', 
+                    lineHeight: 1.5,
+                    margin: 0
+                  }}>
+                    {slide.quote}
+                  </p>
+                </div>
               </div>
             ))}
           </div>
@@ -204,15 +219,7 @@ const Login = () => {
             ))}
           </div>
 
-          {/* Stats */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginBottom: '2.5rem' }}>
-            {stats.map(s => (
-              <div key={s.label} style={{ textAlign: 'center', padding: '1rem 0.5rem', background: 'rgba(255,255,255,0.06)', borderRadius: '12px', border: '1px solid rgba(201,168,76,0.15)', backdropFilter: 'blur(10px)' }}>
-                <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem', fontWeight: 800, background: 'linear-gradient(90deg, #c9a84c 0%, #a68b3e 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', opacity: 0.7 }}>{s.value}</div>
-                <div style={{ color: 'rgba(232,223,200,0.4)', fontSize: '0.7rem', marginTop: '0.2rem' }}>{s.label}</div>
-              </div>
-            ))}
-          </div>
+
 
           {/* Features */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
