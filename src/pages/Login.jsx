@@ -307,9 +307,9 @@ const Login = () => {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '-0.5rem' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.85rem', opacity: 0.4, cursor: 'pointer', flex: 1 }}>
                 <input type="checkbox" style={{ accentColor }} />
-                Remember me
+                {t('rememberMe')}
               </label>
-              <Link to="#" style={{ fontSize: '0.85rem', fontWeight: 600, color: accentColor }}>Forgot password?</Link>
+              <a href="#" style={{ fontSize: '0.85rem', fontWeight: 600, color: accentColor, textDecoration: 'none' }}>{t('forgotPassword')}</a>
             </div>
 
             <button 
@@ -329,7 +329,7 @@ const Login = () => {
                 transition: 'all 0.3s ease',
               }}
             >
-              {loading ? 'PROCESSING...' : mode === 'signin' ? 'LOGIN' : 'CREATE ACCOUNT'}
+              {loading ? t('processing') : mode === 'signin' ? t('loginBtn') : t('createAccountBtn')}
             </button>
           </form>
 
@@ -337,7 +337,7 @@ const Login = () => {
           <div style={{ marginTop: '4rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
               <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.1)' }} />
-              <div style={{ fontSize: '0.65rem', letterSpacing: '0.2em', fontWeight: 700, opacity: 0.3 }}>QUICK DEMO ACCESS</div>
+              <div style={{ fontSize: '0.65rem', letterSpacing: '0.2em', fontWeight: 700, opacity: 0.3 }}>{t('quickDemoAccess')}</div>
               <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.1)' }} />
             </div>
             <div style={{ display: 'flex', gap: '1rem' }}>
@@ -347,7 +347,7 @@ const Login = () => {
                 onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
                 onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
               >
-                VOLUNTEER DEMO
+                {t('volunteerDemo')}
               </button>
               <button 
                 onClick={() => handleDemoLogin('ngo')}
@@ -355,7 +355,7 @@ const Login = () => {
                 onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
                 onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
               >
-                NGO DEMO
+                {t('ngoDemo')}
               </button>
             </div>
           </div>

@@ -134,7 +134,7 @@ const VoiceAssistant = () => {
 Respond ONLY in ${langMap[selectedLanguage]}. Be concise (2-3 sentences max).
 User asked: "${text}"`;
 
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`, {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
@@ -558,7 +558,7 @@ User asked: "${text}"`;
           height: '400px',
           display: 'flex',
           flexDirection: 'column',
-          animation: 'slideDown 0.3s ease'
+          animation: 'popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards'
         }}>
           <div className="card-header" style={{ 
             display: 'flex', 
@@ -609,7 +609,7 @@ User asked: "${text}"`;
                 }}
               >
                 <X size={14} />
-                Close
+                {t('close')}
               </button>
             </div>
           </div>
@@ -637,7 +637,7 @@ User asked: "${text}"`;
             {isAiThinking && (
               <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '0.75rem' }}>
                 <div style={{ background: 'var(--bg-secondary)', padding: '0.5rem 1rem', borderRadius: 'var(--radius-md)', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                  Thinking...
+                  {t('thinking')}
                 </div>
               </div>
             )}

@@ -4,8 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { User, Mail, Phone, MapPin, Calendar, ShieldCheck, CheckCircle2, XCircle, Clock, Zap, Search, Brain, Star } from 'lucide-react';
-import { scoreApplications } from '../utils/logisticRegression';
+import { User, Mail, Phone, MapPin, Calendar, ShieldCheck, CheckCircle2, XCircle, Clock, Zap, Search, Star } from 'lucide-react';
 
 const MatchIndicator = ({ percent }) => {
   const color = percent > 80 ? '#22c55e' : percent > 40 ? '#f59e0b' : '#ef4444';
@@ -42,9 +41,6 @@ const NGODashboard = () => {
   const [autoSelectionThreshold, setAutoSelectionThreshold] = useState(70);
   const [isRunningAutoSelection, setIsRunningAutoSelection] = useState(false);
 
-  // Logistic Regression state
-  const [lrPredictions, setLrPredictions] = useState(new Map());
-  const [lrModelMeta, setLrModelMeta] = useState(null);
 
   // Feedback State
   const [feedbackState, setFeedbackState] = useState({});
@@ -89,14 +85,6 @@ const NGODashboard = () => {
       const appList = apps || [];
       setApplications(appList);
 
-      // ── Run logistic regression on updated data ─────────────────────────
-      try {
-        const { modelMeta, predictions } = scoreApplications(appList);
-        setLrPredictions(predictions);
-        setLrModelMeta(modelMeta);
-      } catch (lrErr) {
-        console.warn('LR scoring failed:', lrErr);
-      }
     } catch (err) {
       toast.error('Failed to load dashboard');
     } finally {

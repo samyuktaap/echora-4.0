@@ -19,8 +19,6 @@ const StatCard = ({ icon: IconComponent, label, value, color, delta }) => (
     alignItems: 'center',
     gap: '1.5rem',
     transition: 'all 0.3s ease',
-    opacity: 0,
-    animation: 'popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards'
   }}>
     <div className="stat-icon" style={{ 
       width: 64, height: 64, 
