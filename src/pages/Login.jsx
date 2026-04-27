@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -15,8 +15,37 @@ const Login = () => {
   const [mode, setMode] = useState('signin'); // 'signin' | 'signup'
   const [role, setRole] = useState('volunteer');
   const [loading, setLoading] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
   const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '' });
   const [showPass, setShowPass] = useState(false);
+
+  const slides = [
+    {
+      image: '/slides/slide1.png',
+      title: 'Make a Real Difference',
+      highlight: 'Difference',
+      desc: 'Join thousands of volunteers working with verified NGOs across all 28 Indian states.',
+    },
+    {
+      image: '/slides/slide2.png',
+      title: 'Empower Lives Daily',
+      highlight: 'Lives',
+      desc: 'Help provide education, food, and medical aid to those in need in urban and rural India.',
+    },
+    {
+      image: '/slides/slide3.png',
+      title: 'Protect Our Future',
+      highlight: 'Future',
+      desc: 'Contribute to environmental sustainability and urban development projects in your city.',
+    }
+  ];
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % slides.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [slides.length]);
 
   const set = (key) => (e) => setForm(p => ({ ...p, [key]: e.target.value }));
 
@@ -79,19 +108,46 @@ const Login = () => {
       gridTemplateColumns: '1fr 1fr',
       background: 'var(--bg-primary)',
     }}>
-      {/* LEFT: Hero */}
+      {/* LEFT: Hero with Slider */}
       <div style={{
-        background: 'linear-gradient(160deg, #060a18 0%, #0d1526 40%, #060812 100%)',
+        background: '#060a18',
         display: 'flex', flexDirection: 'column', justifyContent: 'center',
         padding: '4rem 3.5rem', position: 'relative', overflow: 'hidden',
       }}>
-        {/* Decorative orbs */}
-        <div style={{ position: 'absolute', top: '8%', right: '5%', width: 320, height: 320, borderRadius: '50%', background: 'radial-gradient(circle, rgba(201,168,76,0.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', bottom: '10%', left: '-5%', width: 280, height: 280, borderRadius: '50%', background: 'radial-gradient(circle, rgba(42,74,155,0.1) 0%, transparent 70%)', pointerEvents: 'none' }} />
-        {/* Gold line top */}
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'var(--gold-grad)' }} />
+        {/* Sliding Background Images */}
+        {slides.map((slide, idx) => (
+          <div
+            key={idx}
+            style={{
+              position: 'absolute',
+              top: 0, left: 0, right: 0, bottom: 0,
+              backgroundImage: `url(${slide.image})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              opacity: currentSlide === idx ? 0.7 : 0,
+              filter: 'brightness(1.1) contrast(1.1)',
+              transition: 'opacity 1.5s ease-in-out',
+              zIndex: 0,
+            }}
+          />
+        ))}
 
-        <div style={{ position: 'relative', zIndex: 1, maxWidth: 440 }}>
+        {/* Gradient Overlay (Lightened for brighter images) */}
+        <div style={{
+          position: 'absolute',
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: 'linear-gradient(160deg, rgba(6,10,24,0.7) 0%, rgba(13,21,38,0.4) 40%, rgba(6,8,18,0.7) 100%)',
+          zIndex: 1,
+        }} />
+
+        {/* Decorative orbs */}
+        <div style={{ position: 'absolute', top: '8%', right: '5%', width: 320, height: 320, borderRadius: '50%', background: 'radial-gradient(circle, rgba(201,168,76,0.12) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 2 }} />
+        <div style={{ position: 'absolute', bottom: '10%', left: '-5%', width: 280, height: 280, borderRadius: '50%', background: 'radial-gradient(circle, rgba(42,74,155,0.15) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 2 }} />
+        
+        {/* Gold line top */}
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'var(--gold-grad)', zIndex: 5 }} />
+
+        <div style={{ position: 'relative', zIndex: 10, maxWidth: 440 }}>
           {/* Logo */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '3rem' }}>
             <img 
@@ -108,21 +164,52 @@ const Login = () => {
             </div>
           </div>
 
-          <h1 style={{ fontSize: '2.8rem', fontWeight: 800, color: '#e8dfc8', lineHeight: 1.15, marginBottom: '1.25rem', fontFamily: 'var(--font-display)' }}>
-            Make a Real<br />
-            <span style={{ background: 'var(--gold-grad)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Difference</span><br />
-            Across India
-          </h1>
-          <p style={{ color: 'rgba(232,223,200,0.55)', fontSize: '0.95rem', marginBottom: '2.5rem', lineHeight: 1.7 }}>
-            Join thousands of volunteers working with verified NGOs across all 28 Indian states.
-          </p>
+          {/* Animated Text Content */}
+          <div style={{ minHeight: '220px' }}>
+            {slides.map((slide, idx) => (
+              <div
+                key={idx}
+                style={{
+                  display: currentSlide === idx ? 'block' : 'none',
+                  animation: 'fadeInUp 0.8s ease-out forwards',
+                }}
+              >
+                <h1 style={{ fontSize: '2.8rem', fontWeight: 800, color: 'rgba(232,223,200,0.7)', lineHeight: 1.15, marginBottom: '1.25rem', fontFamily: 'var(--font-display)' }}>
+                  {slide.title.split(slide.highlight)[0]}<br />
+                  <span style={{ background: 'linear-gradient(90deg, #c9a84c 0%, #a68b3e 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', opacity: 0.8 }}>{slide.highlight}</span><br />
+                  {slide.title.split(slide.highlight)[1]} Across India
+                </h1>
+                <p style={{ color: 'rgba(232,223,200,0.5)', fontSize: '1rem', marginBottom: '2.5rem', lineHeight: 1.7 }}>
+                  {slide.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {/* Slider Indicators */}
+          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '2.5rem' }}>
+            {slides.map((_, idx) => (
+              <div
+                key={idx}
+                onClick={() => setCurrentSlide(idx)}
+                style={{
+                  width: currentSlide === idx ? 30 : 8,
+                  height: 8,
+                  borderRadius: 4,
+                  background: currentSlide === idx ? 'var(--gold-grad)' : 'rgba(255,255,255,0.2)',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                }}
+              />
+            ))}
+          </div>
 
           {/* Stats */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginBottom: '2.5rem' }}>
             {stats.map(s => (
-              <div key={s.label} style={{ textAlign: 'center', padding: '1rem 0.5rem', background: 'rgba(255,255,255,0.04)', borderRadius: '12px', border: '1px solid rgba(201,168,76,0.1)' }}>
-                <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem', fontWeight: 800, background: 'var(--gold-grad)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{s.value}</div>
-                <div style={{ color: 'rgba(232,223,200,0.45)', fontSize: '0.7rem', marginTop: '0.2rem' }}>{s.label}</div>
+              <div key={s.label} style={{ textAlign: 'center', padding: '1rem 0.5rem', background: 'rgba(255,255,255,0.06)', borderRadius: '12px', border: '1px solid rgba(201,168,76,0.15)', backdropFilter: 'blur(10px)' }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem', fontWeight: 800, background: 'linear-gradient(90deg, #c9a84c 0%, #a68b3e 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', opacity: 0.7 }}>{s.value}</div>
+                <div style={{ color: 'rgba(232,223,200,0.4)', fontSize: '0.7rem', marginTop: '0.2rem' }}>{s.label}</div>
               </div>
             ))}
           </div>
@@ -130,9 +217,9 @@ const Login = () => {
           {/* Features */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
             {features.map(f => (
-              <div key={f.text} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', background: 'rgba(255,255,255,0.04)', borderRadius: '10px', padding: '0.6rem 0.85rem', border: '1px solid rgba(201,168,76,0.1)' }}>
-                <span style={{ fontSize: '1rem' }}>{f.icon}</span>
-                <span style={{ color: 'rgba(232,223,200,0.65)', fontSize: '0.78rem' }}>{f.text}</span>
+              <div key={f.text} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', background: 'rgba(255,255,255,0.06)', borderRadius: '10px', padding: '0.6rem 0.85rem', border: '1px solid rgba(201,168,76,0.15)', backdropFilter: 'blur(10px)' }}>
+                <span style={{ fontSize: '1rem', opacity: 0.7 }}>{f.icon}</span>
+                <span style={{ color: 'rgba(232,223,200,0.6)', fontSize: '0.78rem' }}>{f.text}</span>
               </div>
             ))}
           </div>
@@ -233,7 +320,16 @@ const Login = () => {
         </div>
       </div>
 
-      <style>{`@media (max-width: 768px) { div[style*="gridTemplateColumns: '1fr 1fr'"] { grid-template-columns: 1fr !important; } div[style*="background: linear-gradient(160deg"] { display: none !important; } }`}</style>
+      <style>{`
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @media (max-width: 768px) { 
+          div[style*="gridTemplateColumns: '1fr 1fr'"] { grid-template-columns: 1fr !important; } 
+          div[style*="background: #060a18"] { display: none !important; } 
+        }
+      `}</style>
     </div>
   );
 };
