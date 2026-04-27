@@ -104,6 +104,7 @@ const VoiceAssistant = () => {
       
       recognition.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
+        if (!transcript || !transcript.trim()) return;
         console.log('Recognized:', transcript);
         handleUserInput(transcript);
         setIsListening(false);
@@ -144,8 +145,10 @@ const VoiceAssistant = () => {
         const systemInstruction = `You are ECHORA AI, a friendly and versatile assistant. 
 User Profile: ${profileInfo}
 While your expertise is ECHORA (India's volunteering platform), you can help with ANY question.
-Respond in ${langMap[selectedLanguage]}. 
-IMPORTANT: DO NOT REPEAT YOURSELF. Be creative, engaging, and varied in your responses.`;
+
+CRITICAL: YOU MUST RESPOND ONLY IN ${langMap[selectedLanguage].toUpperCase()}. 
+Even if the user asks in a different language, your response must be in ${langMap[selectedLanguage]}.
+DO NOT REPEAT YOURSELF. Be creative, engaging, and varied in your responses.`;
 
         const contents = [
           ...recentHistory,
@@ -254,6 +257,15 @@ IMPORTANT: DO NOT REPEAT YOURSELF. Be creative, engaging, and varied in your res
       setTestStatus('error');
     }
     setTimeout(() => setTestStatus(null), 3000);
+  };
+
+  const reinitializeAudio = () => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const voices = window.speechSynthesis.getVoices();
+      setAvailableVoices(voices);
+      alert('Audio system re-initialized. Please try speaking now.');
+    }
   };
 
   const speak = (text) => {
@@ -514,6 +526,23 @@ IMPORTANT: DO NOT REPEAT YOURSELF. Be creative, engaging, and varied in your res
                   }}
                 >
                   {testStatus === 'testing' ? t('testing') : testStatus === 'success' ? t('success') : testStatus === 'error' ? t('error') : t('testKey')}
+                </button>
+                <button
+                  onClick={reinitializeAudio}
+                  title="Fix audio if it stops working"
+                  style={{
+                    padding: '0 0.75rem',
+                    background: 'rgba(255,255,255,0.1)',
+                    color: 'white',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    borderRadius: 'var(--radius-md)',
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease'
+                  }}
+                >
+                  Repair
                 </button>
               </div>
               <p style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '0.6rem', lineHeight: 1.4 }}>
