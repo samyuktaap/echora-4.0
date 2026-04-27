@@ -70,6 +70,7 @@ function ApplyModal({ task, matchScore, matchedSkills, profile, onClose, onDone 
       const { error } = await supabase.from('ngo_applications').insert({
         volunteer_id: user.id,
         ngo_id: task.ngo_id,
+        ngo_name: task.ngo_name || '',
         task_id: String(task.id),
         task_title: task.title,
         volunteer_name: profile?.name || '',

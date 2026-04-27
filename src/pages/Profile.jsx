@@ -19,58 +19,28 @@ const Profile = () => {
   const { t } = useLanguage();
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [showNoteForm, setShowNoteForm] = useState(false);
-  const [notes, setNotes] = useState([]);
   const [ngoFeedbacks, setNgoFeedbacks] = useState([]);
 
   // Load notes and feedback from Supabase
   useEffect(() => {
     if (!user) return;
     
-    // Fetch personal notes
-    supabase
-      .from('notes')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .then(({ data, error }) => {
-        if (error) console.error('Notes fetch error:', error);
-        else setNotes(data || []);
-      });
-
-    // Fetch NGO Feedback
+    // Fetch NGO Feedback (using ngo_name stored in table to avoid RLS issues)
+    console.log('Fetching feedback for user:', user.id);
+    
     supabase
       .from('ngo_applications')
-      .select(`
-        id, 
-        task_title, 
-        ngo_feedback, 
-        ngo_rating, 
-        created_at,
-        ngo:profiles!ngo_id(name)
-      `)
+      .select('id, task_title, ngo_feedback, ngo_rating, created_at, ngo_name, status')
       .eq('volunteer_id', user.id)
       .not('ngo_feedback', 'is', null)
       .order('created_at', { ascending: false })
       .then(({ data, error }) => {
+        console.log('Feedback query result:', { data, error, count: data?.length });
         if (error) {
           console.error('NGO Feedback fetch error:', error);
-          // Fallback query if relation fails
-          supabase.from('ngo_applications')
-            .select('id, task_title, ngo_feedback, ngo_rating, created_at, ngo_id')
-            .eq('volunteer_id', user.id)
-            .not('ngo_feedback', 'is', null)
-            .order('created_at', { ascending: false })
-            .then(({ data: fallbackData }) => {
-               setNgoFeedbacks(fallbackData || []);
-            });
+          setNgoFeedbacks([]);
         } else {
-          // Flatten the ngo name
-          const formatted = data?.map(fb => ({
-            ...fb,
-            ngo_name: fb.ngo?.name || 'NGO'
-          }));
-          setNgoFeedbacks(formatted || []);
+          setNgoFeedbacks(data || []);
         }
       });
   }, [user]);
@@ -84,7 +54,6 @@ const Profile = () => {
     skills: profile?.skills || [],
     languages: profile?.languages || [],
   });
-  const [noteForm, setNoteForm] = useState({ task: '', note: '', rating: 5 });
 
   const toggleSkill = (s) => setForm(p => ({ ...p, skills: p.skills.includes(s) ? p.skills.filter(x => x !== s) : [...p.skills, s] }));
   const toggleLang = (l) => setForm(p => ({ ...p, languages: p.languages.includes(l) ? p.languages.filter(x => x !== l) : [...p.languages, l] }));
@@ -97,37 +66,6 @@ const Profile = () => {
     setSaving(false);
     setEditing(false);
     toast.success(t('profileUpdated'));
-  };
-
-  const handleAddNote = async () => {
-    if (!noteForm.task || !noteForm.note) { toast.error(t('fieldRequired')); return; }
-    if (!user) { toast.error(t('unauthorized')); return; }
-
-    const newNote = {
-      user_id: user.id,
-      task: noteForm.task,
-      note: noteForm.note,
-      rating: noteForm.rating,
-      date: new Date().toLocaleDateString('en-IN'),
-    };
-
-    const { data, error } = await supabase
-      .from('notes')
-      .insert(newNote)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Note insert error:', error);
-      toast.error(t('serverError'));
-      return;
-    }
-
-    setNotes(prev => [data, ...prev]);
-    updateProfile({ points: (profile?.points || 0) + 10, tasksCompleted: (profile?.tasksCompleted || 0) + 1 });
-    setNoteForm({ task: '', note: '', rating: 5 });
-    setShowNoteForm(false);
-    toast.success(t('settingsSaved'));
   };
 
   const BADGE_ICONS = { 'Newcomer': '🌱', 'Helper': '🤝', 'Early Bird': '🌅', 'Star Volunteer': '⭐', 'Mentor': '🎓', 'Life Saver': '❤️', 'Builder': '🏗️', 'Educator': '📚' };
@@ -285,35 +223,12 @@ const Profile = () => {
       <div className="card">
         <div className="card-header">
           <h3 style={{ fontSize: '1.05rem', fontFamily: 'var(--font-display)' }}>{t('taskNotesFeedback')}</h3>
-          <button onClick={() => setShowNoteForm(p => !p)} className="btn btn-primary btn-sm">{t('addNoteBtn')}</button>
         </div>
-        {showNoteForm && (
-          <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-secondary)' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div className="form-group">
-                <label className="form-label">{t('taskNameLabel')}</label>
-                <input className="form-input" placeholder={t('taskNamePlaceholder')} value={noteForm.task} onChange={e => setNoteForm(p => ({ ...p, task: e.target.value }))} />
-              </div>
-              <div className="form-group">
-                <label className="form-label">{t('yourExperience')}</label>
-                <textarea className="form-textarea" placeholder={t('yourExperiencePlaceholder')} value={noteForm.note} onChange={e => setNoteForm(p => ({ ...p, note: e.target.value }))} style={{ minHeight: 80 }} />
-              </div>
-              <div className="form-group">
-                <label className="form-label">{t('ratingLabel')}</label>
-                <StarRating value={noteForm.rating} onChange={r => setNoteForm(p => ({ ...p, rating: r }))} />
-              </div>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button onClick={handleAddNote} className="btn btn-primary btn-sm">{t('saveNoteBtn')}</button>
-                <button onClick={() => setShowNoteForm(false)} className="btn btn-secondary btn-sm">{t('cancel')}</button>
-              </div>
-            </div>
-          </div>
-        )}
         <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          {notes.length === 0 && ngoFeedbacks.length === 0 ? (
+          {ngoFeedbacks.length === 0 ? (
             <div className="empty-state">
-              <div className="empty-icon">📝</div>
-              <p>{t('noNotesYet')}</p>
+              <div className="empty-icon">⭐</div>
+              <p>No feedback received yet. NGOs will leave feedback here after you complete tasks!</p>
             </div>
           ) : (
             <>
@@ -322,25 +237,13 @@ const Profile = () => {
                 <div key={`fb-${fb.id}`} style={{ padding: '1.25rem', background: 'rgba(201,168,76,0.06)', borderRadius: '12px', border: '1px solid rgba(201,168,76,0.3)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
                     <div>
-                      <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--gold-mid)' }}>Feedback from {fb.ngo_name || 'NGO'}</div>
+                      <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--gold-mid)' }}>Feedback from {fb.ngo_name?.trim() || 'NGO'}</div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>for <span style={{ color: 'var(--text-primary)' }}>{fb.task_title || 'a task'}</span></div>
                     </div>
                     <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{new Date(fb.created_at).toLocaleDateString('en-IN')}</span>
                   </div>
                   <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '0.75rem', lineHeight: 1.6, fontStyle: 'italic' }}>"{fb.ngo_feedback}"</p>
                   <StarRating value={fb.ngo_rating || 5} />
-                </div>
-              ))}
-
-              {/* Personal Notes */}
-              {notes.map(note => (
-                <div key={note.id} style={{ padding: '1.25rem', background: 'var(--bg-secondary)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                    <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{t(note.task)}</span>
-                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{note.date}</span>
-                  </div>
-                  <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', lineHeight: 1.6 }}>{t(note.note)}</p>
-                  <StarRating value={note.rating} />
                 </div>
               ))}
             </>

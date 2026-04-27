@@ -1,14 +1,31 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
-import { Home, ClipboardList, Building, Map, Calendar, TrendingUp, Trophy, PlusCircle, User, LogOut, Menu, X, Zap, Globe } from 'lucide-react';
+import { Home, ClipboardList, Building, Map, Calendar, TrendingUp, Trophy, PlusCircle, User, LogOut, Menu, X, Zap, Globe, Star } from 'lucide-react';
 import Notifications from './Notifications';
 
 const Sidebar = ({ onClose }) => {
   const { profile, signOut } = useAuth();
   const { t, language, setLanguage, LANGUAGES } = useLanguage();
   const navigate = useNavigate();
+  const [newFeedbackCount, setNewFeedbackCount] = useState(0);
+
+  // Fetch unread feedback count for volunteers
+  useEffect(() => {
+    if (!profile || profile.role === 'ngo') return;
+    import('../lib/supabase').then(({ supabase }) => {
+      supabase
+        .from('ngo_applications')
+        .select('id', { count: 'exact', head: false })
+        .eq('volunteer_id', profile.id)
+        .not('ngo_feedback', 'is', null)
+        .eq('feedback_seen', false)
+        .then(({ count }) => {
+          setNewFeedbackCount(count || 0);
+        });
+    });
+  }, [profile]);
 
   const navItems = [
     { to: '/dashboard', icon: Home, label: t('navDashboard') },
@@ -16,6 +33,7 @@ const Sidebar = ({ onClose }) => {
     // Volunteer / Admin Only Section
     ...(profile?.role !== 'ngo' ? [
       { to: '/tasks', icon: ClipboardList, label: t('navTasks') },
+      { to: '/my-feedback', icon: Star, label: 'My Feedback', badge: newFeedbackCount || null },
     ] : []),
 
     { to: '/map', icon: Map, label: t('navMap') },
@@ -152,7 +170,20 @@ const Sidebar = ({ onClose }) => {
               })}
             >
               <IconComponent size={18} strokeWidth={2} style={{ flexShrink: 0, opacity: 0.8 }} />
-              {item.label}
+              <span style={{ flex: 1 }}>{item.label}</span>
+              {item.badge > 0 && (
+                <span style={{
+                  minWidth: 18, height: 18, borderRadius: 99,
+                  background: '#ef4444', color: '#fff',
+                  fontSize: '0.65rem', fontWeight: 800,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  padding: '0 4px', flexShrink: 0,
+                  boxShadow: '0 0 0 2px var(--bg-sidebar)',
+                  animation: 'pulse 2s infinite',
+                }}>
+                  {item.badge > 9 ? '9+' : item.badge}
+                </span>
+              )}
             </NavLink>
           );
         })}

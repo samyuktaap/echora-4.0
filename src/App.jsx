@@ -20,6 +20,7 @@ const NGOForm = lazy(() => import('./pages/NGOForm'));
 const NGORequests = lazy(() => import('./pages/NGORequests'));
 const NGODashboard = lazy(() => import('./pages/NGODashboard'));
 const VolunteerOnboarding = lazy(() => import('./pages/VolunteerOnboarding'));
+const MyFeedback = lazy(() => import('./pages/MyFeedback'));
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -53,6 +54,7 @@ function AppRoutes() {
         <Route path="ngo-dashboard" element={<NGODashboard />} />
         <Route path="ngo-form" element={<NGOForm />} />
         <Route path="ngo-requests" element={<NGORequests />} />
+        <Route path="my-feedback" element={<MyFeedback />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
