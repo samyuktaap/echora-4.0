@@ -33,7 +33,6 @@ const Sidebar = ({ onClose }) => {
     // Volunteer / Admin Only Section
     ...(profile?.role !== 'ngo' ? [
       { to: '/tasks', icon: ClipboardList, label: t('navTasks') },
-      { to: '/my-feedback', icon: Star, label: 'My Feedback', badge: newFeedbackCount || null },
     ] : []),
 
     { to: '/map', icon: Map, label: t('navMap') },
