@@ -156,31 +156,31 @@ const Login = () => {
         {/* Quote Card */}
         <div style={{
           position: 'absolute',
-          bottom: '3rem',
-          left: '3rem',
-          right: '3rem',
+          bottom: '2rem',
+          left: '2rem',
+          right: '2rem',
           zIndex: 10,
-          background: 'rgba(0,0,0,0.4)',
-          backdropFilter: 'blur(30px)',
-          padding: '3rem',
-          borderRadius: '24px',
+          background: 'rgba(0,0,0,0.45)',
+          backdropFilter: 'blur(20px)',
+          padding: '1.25rem 1.5rem',
+          borderRadius: '16px',
           border: '1px solid rgba(255,255,255,0.1)',
-          maxWidth: '600px',
+          maxWidth: '480px',
         }}>
           <div key={currentSlide} style={{ animation: 'fadeInUp 0.8s ease-out' }}>
             <p style={{ 
               fontFamily: 'var(--font-display)', 
-              fontSize: '2.5rem', 
-              fontWeight: 700, 
-              lineHeight: 1.2, 
-              marginBottom: '1.5rem',
+              fontSize: '1.1rem', 
+              fontWeight: 600, 
+              lineHeight: 1.45, 
+              marginBottom: '0.75rem',
               color: '#ffffff'
             }}>
               {slides[currentSlide].quote}
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <div style={{ width: 20, height: 2, background: accentColor }} />
-              <p style={{ fontSize: '0.85rem', letterSpacing: '0.15em', fontWeight: 600, color: 'rgba(255,255,255,0.6)' }}>
+              <div style={{ width: 16, height: 2, background: accentColor }} />
+              <p style={{ fontSize: '0.75rem', letterSpacing: '0.12em', fontWeight: 600, color: 'rgba(255,255,255,0.6)' }}>
                 {slides[currentSlide].author}
               </p>
             </div>

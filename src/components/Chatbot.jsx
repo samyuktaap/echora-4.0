@@ -146,7 +146,7 @@ const Chatbot = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, typing]);
 
-  const sendMessage = (text) => {
+  const sendMessage = async (text) => {
     const msg = typeof text === 'string' ? text : input;
     const trimmed = msg.trim();
     if (!trimmed) return;
@@ -155,11 +155,47 @@ const Chatbot = () => {
     setInput('');
     setTyping(true);
 
-    setTimeout(() => {
-      const response = getBotResponse(trimmed, profile?.name?.split(' ')[0]);
-      setTyping(false);
-      setMessages(prev => [...prev, { from: 'bot', text: response }]);
-    }, 700 + Math.random() * 500);
+    const geminiKey = window.CONFIG?.VITE_GEMINI_API_KEY || import.meta.env.VITE_GEMINI_API_KEY;
+
+    if (geminiKey) {
+      try {
+        const history = messages.slice(-5).map(m => ({
+          role: m.from === 'user' ? 'user' : 'model',
+          parts: [{ text: m.text }]
+        }));
+
+        const systemInstruction = `You are VolBot, the smart assistant for ECHORA (India's volunteering platform). 
+        User: ${profile?.name || 'Volunteer'}. 
+        Help the user navigate ECHORA, find tasks, understand points, or just chat. 
+        Be helpful, concise, and friendly. Use emojis!`;
+
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [...history, { role: 'user', parts: [{ text: `${systemInstruction}\n\nUser: ${trimmed}` }] }]
+          })
+        });
+
+        const data = await res.json();
+        const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text || "I'm having a bit of trouble thinking right now. Could you try again?";
+        
+        setTyping(false);
+        setMessages(prev => [...prev, { from: 'bot', text: responseText }]);
+      } catch (err) {
+        console.error('Chatbot AI Error:', err);
+        const fallback = getBotResponse(trimmed, profile?.name?.split(' ')[0]);
+        setTyping(false);
+        setMessages(prev => [...prev, { from: 'bot', text: fallback }]);
+      }
+    } else {
+      // Fallback to local logic if no key
+      setTimeout(() => {
+        const response = getBotResponse(trimmed, profile?.name?.split(' ')[0]);
+        setTyping(false);
+        setMessages(prev => [...prev, { from: 'bot', text: response }]);
+      }, 700 + Math.random() * 500);
+    }
   };
 
   const handleKeyDown = (e) => {
