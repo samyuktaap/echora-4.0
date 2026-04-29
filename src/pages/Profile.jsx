@@ -54,6 +54,14 @@ const Profile = () => {
     skills: profile?.skills || [],
     languages: profile?.languages || [],
   });
+  const [phone, setPhone] = useState('');
+
+  // Load phone from volunteer_details
+  useEffect(() => {
+    if (!user) return;
+    supabase.from('volunteer_details').select('phone').eq('id', user.id).single()
+      .then(({ data }) => { if (data?.phone) setPhone(data.phone); });
+  }, [user]);
 
   const toggleSkill = (s) => setForm(p => ({ ...p, skills: p.skills.includes(s) ? p.skills.filter(x => x !== s) : [...p.skills, s] }));
   const toggleLang = (l) => setForm(p => ({ ...p, languages: p.languages.includes(l) ? p.languages.filter(x => x !== l) : [...p.languages, l] }));
@@ -61,7 +69,19 @@ const Profile = () => {
   const handleSave = async () => {
     if (!form.name) { toast.error(t('fieldRequired')); return; }
     setSaving(true);
+    // Save profile fields
     updateProfile(form);
+    // Save phone to volunteer_details (upsert)
+    if (phone.trim()) {
+      await supabase.from('volunteer_details').upsert({
+        id: user.id,
+        phone: phone.trim(),
+        address: form.location || 'India',
+        dob: '2000-01-01',
+        id_proof_type: 'Aadhar',
+        id_proof_number: 'XXXX-XXXX-0000',
+      }, { onConflict: 'id' });
+    }
     setSaving(false);
     setEditing(false);
     toast.success(t('profileUpdated'));
@@ -116,6 +136,16 @@ const Profile = () => {
                         {INDIA_STATES.map(s => <option key={s} value={s}>{s}</option>)}
                       </select>
                     </div>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">📞 Phone Number</label>
+                    <input
+                      className="form-input"
+                      type="tel"
+                      placeholder="+91 98765 43210"
+                      value={phone}
+                      onChange={e => setPhone(e.target.value)}
+                    />
                   </div>
                   <div className="form-group">
                     <label className="form-label">{t('cityLocationLabel')} <span style={{ color: 'var(--gold-mid)', fontSize: '0.65rem' }}>{t('updatesMapAuto')}</span></label>

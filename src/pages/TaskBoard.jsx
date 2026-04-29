@@ -3,8 +3,9 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { MapPin, Clock, Users, Briefcase, Calendar, Check, Search, Filter, SlidersHorizontal, ArrowRight, Zap, Target } from 'lucide-react';
+import { MapPin, Clock, Users, Briefcase, Calendar, Check, Search, Filter, SlidersHorizontal, ArrowRight, Zap, Target, AlertCircle, X } from 'lucide-react';
 import { INDIA_STATES } from '../data/mockData';
 import { getTranslatedContent, getTranslatedSkill, getTranslatedUrgency } from '../data/contentTranslations';
 import { translateObject, translateArray } from '../utils/translationHelper';
@@ -60,9 +61,22 @@ const MatchIndicator = ({ percent }) => {
   );
 };
 
+// Check if profile has minimum required fields filled
+function isProfileComplete(profile, phone) {
+  if (!profile) return false;
+  return !!(
+    profile.name?.trim() &&
+    profile.location?.trim() &&
+    profile.state?.trim() &&
+    profile.skills?.length > 0 &&
+    phone?.trim()
+  );
+}
+
 const TaskBoard = () => {
   const { user, profile } = useAuth();
   const { language, t } = useLanguage();
+  const navigate = useNavigate();
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [appliedIds, setAppliedIds] = useState(new Set());
@@ -74,10 +88,17 @@ const TaskBoard = () => {
   const [applyingId, setApplyingId] = useState(null);
   const [message, setMessage] = useState('');
   const [showMessageFor, setShowMessageFor] = useState(null);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [volunteerPhone, setVolunteerPhone] = useState('');
 
   useEffect(() => {
     fetchTasks();
-    if (user) fetchApplications();
+    if (user) {
+      fetchApplications();
+      // Fetch volunteer phone from volunteer_details
+      supabase.from('volunteer_details').select('phone').eq('id', user.id).single()
+        .then(({ data }) => { if (data?.phone) setVolunteerPhone(data.phone); });
+    }
   }, [user]);
 
   async function fetchTasks() {
@@ -395,7 +416,17 @@ const TaskBoard = () => {
                              <button onClick={() => setShowMessageFor(null)} className="btn btn-secondary" style={{ width: '44px', padding: 0 }}>✕</button>
                           </div>
                         ) : (
-                          <button onClick={() => setShowMessageFor(task.id)} className="btn btn-primary btn-lg" style={{ padding: '0 2rem', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                          <button
+                            onClick={() => {
+                              if (!isProfileComplete(profile, volunteerPhone)) {
+                                setShowProfileModal(true);
+                              } else {
+                                setShowMessageFor(task.id);
+                              }
+                            }}
+                            className="btn btn-primary btn-lg"
+                            style={{ padding: '0 2rem', display: 'flex', alignItems: 'center', gap: '0.6rem' }}
+                          >
                              Apply Now <ArrowRight size={18} />
                           </button>
                         )}
@@ -406,6 +437,73 @@ const TaskBoard = () => {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Profile Incomplete Modal */}
+      {showProfileModal && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 9999,
+          background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: '1rem',
+        }} onClick={() => setShowProfileModal(false)}>
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-color)',
+              borderRadius: '24px',
+              padding: '2.5rem',
+              maxWidth: '420px',
+              width: '100%',
+              boxShadow: '0 30px 80px rgba(0,0,0,0.4)',
+              animation: 'scaleIn 0.2s ease',
+              textAlign: 'center',
+            }}
+          >
+            <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(245,158,11,0.15)', border: '2px solid rgba(245,158,11,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+              <AlertCircle size={30} color="#f59e0b" />
+            </div>
+            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.75rem' }}>
+              Complete Your Profile First
+            </h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.7, marginBottom: '0.5rem' }}>
+              To apply for opportunities, please fill in:
+            </p>
+            <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.4rem', marginBottom: '2rem' }}>
+              {[
+                ['name', '👤 Full Name', () => !!profile?.name?.trim()],
+                ['location', '📍 City / Location', () => !!profile?.location?.trim()],
+                ['state', '🗺️ State', () => !!profile?.state?.trim()],
+                ['skills', '🛠️ At least one Skill', () => profile?.skills?.length > 0],
+                ['phone', '📞 Phone Number', () => !!volunteerPhone?.trim()],
+              ].map(([field, label, isFilled]) => {
+                const filled = isFilled();
+                return (
+                  <li key={field} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center', fontSize: '0.85rem', color: filled ? '#4ade80' : 'var(--text-muted)' }}>
+                    <span>{filled ? '✅' : '⬜'}</span> {label}
+                  </li>
+                );
+              })}
+            </ul>
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <button
+                onClick={() => { setShowProfileModal(false); navigate('/profile'); }}
+                className="btn btn-primary"
+                style={{ flex: 1 }}
+              >
+                Go to Profile →
+              </button>
+              <button
+                onClick={() => setShowProfileModal(false)}
+                className="btn btn-secondary"
+                style={{ width: '44px', padding: 0 }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
