@@ -217,12 +217,8 @@ User asked: "${text}"`;
     const hasVoice = voiceStatus[selectedLanguage];
     
     if (!hasVoice && selectedLanguage !== 'en') {
-      // Show warning and don't attempt to speak
-      const langName = languages.find(l => l.code === selectedLanguage)?.name;
-      const warning = `${langName} voice not installed on your system. Please install ${langName} language pack in Windows Settings > Time & Language > Language, or use English.`;
-      setMissingVoiceWarning(warning);
-      console.warn(warning);
-      return;
+      // No regional voice installed — silently continue with best available voice
+      console.warn(`No ${selectedLanguage} voice found, using available fallback voice.`);
     }
     
     setMissingVoiceWarning(null);
