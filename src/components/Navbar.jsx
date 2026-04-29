@@ -180,7 +180,7 @@ const Navbar = ({ onMenuClick }) => {
         </button>
       </div>
 
-      <style>{`@media (max-width: 768px) { header { left: 0 !important; } #mobile-menu-btn { display: flex !important; } }`}</style>
+      <style>{`@media (max-width: 1024px) { header { left: 0 !important; } #mobile-menu-btn { display: flex !important; } }`}</style>
     </header>
   );
 };
