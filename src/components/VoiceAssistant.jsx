@@ -346,23 +346,53 @@ User asked: "${text}"`;
 
   return (
     <div className="voice-assistant">
-      {/* Main Button */}
+      {/* Main Button — click = listen, right-click = settings */}
       <div 
         className="voice-assistant-main"
-        title={t('voiceAssistant')}
-        onClick={() => setShowSettings(!showSettings)}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'scale(1.1)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'scale(1)';
+        title={isListening ? 'Listening… click to stop' : 'Click to speak'}
+        onClick={toggleListening}
+        onContextMenu={(e) => { e.preventDefault(); setShowSettings(!showSettings); }}
+        onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.1)'; }}
+        onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
+        style={{
+          background: isListening
+            ? 'linear-gradient(135deg, #ef4444, #dc2626)'
+            : isSpeaking
+            ? 'linear-gradient(135deg, #8b5cf6, #6d28d9)'
+            : undefined,
+          boxShadow: isListening ? '0 0 0 6px rgba(239,68,68,0.3)' : undefined,
+          animation: isListening ? 'pulse 1s infinite' : undefined,
         }}
       >
-        {isSpeaking ? (
+        {isListening ? (
+          <MicOff size={24} color="white" />
+        ) : isSpeaking ? (
           <Volume2 size={24} color="white" style={{ animation: 'pulse 1s infinite' }} />
         ) : (
           <Mic size={24} color="white" />
         )}
+      </div>
+
+      {/* Small settings toggle */}
+      <div
+        title="Settings"
+        onClick={() => setShowSettings(!showSettings)}
+        style={{
+          position: 'absolute',
+          bottom: '64px',
+          right: '4px',
+          width: '24px',
+          height: '24px',
+          borderRadius: '50%',
+          background: 'rgba(255,255,255,0.15)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          fontSize: '13px',
+        }}
+      >
+        ⚙️
       </div>
 
       {/* Settings Panel */}
