@@ -2,6 +2,16 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
+import { createRequire } from 'module';
+
+// Load .env file for local development (dotenv via require fallback)
+try {
+  const require = createRequire(import.meta.url);
+  const dotenv = require('dotenv');
+  dotenv.config();
+} catch {
+  // dotenv not installed — env vars must be set externally (e.g. GCP / Docker)
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
