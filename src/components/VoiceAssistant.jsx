@@ -145,19 +145,21 @@ User asked: "${text}"`;
             body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
           });
           data = await res.json();
-          // If overloaded/unavailable, try next model
-          if (data.error && (res.status === 503 || data.error.code === 503 || data.error.message?.toLowerCase().includes('demand'))) {
-            console.warn(`${model} overloaded, trying fallback...`);
+          // If overloaded/rate-limited, try next model
+          if (data.error && (res.status === 503 || res.status === 429 || data.error.code === 503 || data.error.code === 429 || data.error.message?.toLowerCase().includes('demand') || data.error.message?.toLowerCase().includes('quota'))) {
+            console.warn(`${model} unavailable (${res.status}), trying fallback...`);
             continue;
           }
-          break; // success or non-503 error — stop trying
+          break; // success or unrecoverable error — stop trying
         }
         if (data.error) throw new Error(data.error.message);
         
         finalResponse = data.candidates[0].content.parts[0].text.replace(/\*/g, ''); // Strip markdown
       } catch (err) {
-        console.error('Gemini error:', err);
-        finalResponse = "I'm having trouble reaching my AI brain right now. Please check your API key or try again later.";
+        console.warn('Gemini unavailable, using built-in responses:', err.message);
+        // Silent fallback to rule-based chatbot — no error shown to user
+        const englishResponse = getBotResponse(text, '').replace(/\*/g, '');
+        finalResponse = englishResponse || aiResponses[selectedLanguage]?.default || aiResponses.en.default;
       } finally {
         setIsAiThinking(false);
       }
