@@ -135,13 +135,23 @@ const VoiceAssistant = () => {
 Respond ONLY in ${langMap[selectedLanguage]}. Be concise (2-3 sentences max).
 User asked: "${text}"`;
 
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-        });
-        
-        const data = await res.json();
+        // Try gemini-2.5-flash first, fall back to gemini-2.0-flash on overload (503)
+        const MODELS = ['gemini-2.5-flash', 'gemini-2.0-flash'];
+        let data = null;
+        for (const model of MODELS) {
+          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+          });
+          data = await res.json();
+          // If overloaded/unavailable, try next model
+          if (data.error && (res.status === 503 || data.error.code === 503 || data.error.message?.toLowerCase().includes('demand'))) {
+            console.warn(`${model} overloaded, trying fallback...`);
+            continue;
+          }
+          break; // success or non-503 error — stop trying
+        }
         if (data.error) throw new Error(data.error.message);
         
         finalResponse = data.candidates[0].content.parts[0].text.replace(/\*/g, ''); // Strip markdown
